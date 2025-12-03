@@ -40,34 +40,52 @@ const saveToLocalStorage = (groups) => {
 export const loadGroups = async () => {
   try {
     const storageId = getStorageId()
-    const response = await fetch(`${JSON_STORAGE_URL}${storageId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Master-Key': MASTER_KEY,
-        'X-Access-Key': ACCESS_KEY
-      }
-    })
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        // Storage doesn't exist yet - return empty array
-        return []
-      }
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    const data = await response.json()
-    const groups = data.groups || []
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
     
-    // Also update LocalStorage as backup (but don't use it as primary source)
-    if (groups.length > 0) {
-      saveToLocalStorage(groups)
+    try {
+      const response = await fetch(`${JSON_STORAGE_URL}${storageId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': MASTER_KEY,
+          'X-Access-Key': ACCESS_KEY
+        },
+        signal: controller.signal
+      })
+
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          // Storage doesn't exist yet - return empty array (this is normal for first use)
+          return []
+        }
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      const groups = data.groups || []
+      
+      // Also update LocalStorage as backup (but don't use it as primary source)
+      if (groups.length > 0) {
+        saveToLocalStorage(groups)
+      }
+      
+      return groups
+    } catch (fetchError) {
+      clearTimeout(timeoutId)
+      throw fetchError
     }
-    
-    return groups
   } catch (error) {
-    console.error('Error loading from JSON storage:', error.message)
+    // Check if it's a network error or timeout
+    if (error.name === 'AbortError') {
+      console.error('Request timeout loading from JSON storage')
+    } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      console.error('Network error loading from JSON storage:', error.message)
+    } else {
+      console.error('Error loading from JSON storage:', error.message)
+    }
     // Only use LocalStorage as last resort if we can't connect at all
     // But warn the user that data might be stale
     const localGroups = loadFromLocalStorage()
