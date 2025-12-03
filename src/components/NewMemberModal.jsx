@@ -1,8 +1,8 @@
 import { X } from 'lucide-react'
 import { useState } from 'react'
 
-export default function NewMemberModal({ onClose, onAdd, existingMembers }) {
-  const [name, setName] = useState('')
+export default function NewMemberModal({ onClose, onAdd, existingMembers, editingMember }) {
+  const [name, setName] = useState(editingMember?.name || '')
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -22,7 +22,9 @@ export default function NewMemberModal({ onClose, onAdd, existingMembers }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="card max-w-md w-full">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-primary-900">Add Member</h2>
+          <h2 className="text-2xl font-bold text-primary-900">
+            {editingMember ? 'Edit Member' : 'Add Member'}
+          </h2>
           <button
             onClick={onClose}
             className="text-primary-600 hover:text-primary-800 p-1"
@@ -59,7 +61,7 @@ export default function NewMemberModal({ onClose, onAdd, existingMembers }) {
               className="btn-primary flex-1"
               disabled={!name.trim()}
             >
-              Add
+              {editingMember ? 'Update' : 'Add'}
             </button>
           </div>
         </form>

@@ -1,4 +1,4 @@
-import { Calculator, ArrowRight, DollarSign, Users, CheckCircle2, Download, Printer } from 'lucide-react'
+import { Calculator, ArrowRight, Users, CheckCircle2, Download, Printer } from 'lucide-react'
 import { calculateBalances, calculateSettlements } from '../utils/calculations'
 import { formatCurrency } from '../utils/currency'
 import { useState } from 'react'
@@ -156,9 +156,8 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {creditors.length > 0 && (
           <div className="card">
-            <h3 className="text-lg font-semibold text-primary-900 mb-4 flex items-center space-x-2">
-              <DollarSign className="w-5 h-5 text-green-600" />
-              <span>Gets Back</span>
+            <h3 className="text-lg font-semibold text-primary-900 mb-4">
+              Gets Back
             </h3>
             <div className="space-y-2">
               {creditors.map(({ memberId, balance }) => (
@@ -176,9 +175,8 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
 
         {debtors.length > 0 && (
           <div className="card">
-            <h3 className="text-lg font-semibold text-primary-900 mb-4 flex items-center space-x-2">
-              <DollarSign className="w-5 h-5 text-red-600" />
-              <span>Owes</span>
+            <h3 className="text-lg font-semibold text-primary-900 mb-4">
+              Owes
             </h3>
             <div className="space-y-2">
               {debtors.map(({ memberId, balance }) => (

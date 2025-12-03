@@ -11,6 +11,8 @@ export default function GroupView({ group, onUpdateGroup, onBack }) {
   const [activeTab, setActiveTab] = useState('bills') // 'members', 'bills', 'tally'
   const [showNewMemberModal, setShowNewMemberModal] = useState(false)
   const [showNewBillModal, setShowNewBillModal] = useState(false)
+  const [editingBill, setEditingBill] = useState(null)
+  const [editingMember, setEditingMember] = useState(null)
 
   const addMember = (name) => {
     const newMember = {
@@ -21,6 +23,15 @@ export default function GroupView({ group, onUpdateGroup, onBack }) {
       members: [...group.members, newMember]
     })
     setShowNewMemberModal(false)
+  }
+
+  const editMember = (memberId, newName) => {
+    onUpdateGroup({
+      members: group.members.map(m => 
+        m.id === memberId ? { ...m, name: newName.trim() } : m
+      )
+    })
+    setEditingMember(null)
   }
 
   const removeMember = (memberId) => {
@@ -37,10 +48,24 @@ export default function GroupView({ group, onUpdateGroup, onBack }) {
   }
 
   const addBill = (bill) => {
-    onUpdateGroup({
-      bills: [...group.bills, bill]
-    })
+    if (editingBill) {
+      // Update existing bill
+      onUpdateGroup({
+        bills: group.bills.map(b => b.id === editingBill.id ? bill : b)
+      })
+      setEditingBill(null)
+    } else {
+      // Add new bill
+      onUpdateGroup({
+        bills: [...group.bills, bill]
+      })
+    }
     setShowNewBillModal(false)
+  }
+
+  const handleEditBill = (bill) => {
+    setEditingBill(bill)
+    setShowNewBillModal(true)
   }
 
   const deleteBill = (billId) => {
@@ -112,6 +137,7 @@ export default function GroupView({ group, onUpdateGroup, onBack }) {
             <MemberList
               members={group.members}
               onRemove={removeMember}
+              onEdit={setEditingMember}
             />
           </div>
         )}
@@ -139,6 +165,7 @@ export default function GroupView({ group, onUpdateGroup, onBack }) {
                 bills={group.bills}
                 members={group.members}
                 onDelete={deleteBill}
+                onEdit={handleEditBill}
               />
             )}
           </div>
@@ -167,9 +194,22 @@ export default function GroupView({ group, onUpdateGroup, onBack }) {
 
       {showNewBillModal && (
         <NewBillModal
-          onClose={() => setShowNewBillModal(false)}
+          onClose={() => {
+            setShowNewBillModal(false)
+            setEditingBill(null)
+          }}
           onAdd={addBill}
           members={group.members}
+          editingBill={editingBill}
+        />
+      )}
+
+      {editingMember && (
+        <NewMemberModal
+          onClose={() => setEditingMember(null)}
+          onAdd={(name) => editMember(editingMember.id, name)}
+          existingMembers={group.members.filter(m => m.id !== editingMember.id)}
+          editingMember={editingMember}
         />
       )}
     </div>

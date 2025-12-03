@@ -1,9 +1,31 @@
 export const calculateBalances = (group) => {
   const balances = {};
   
-  // Initialize balances for all members
+  // Get all member IDs that are actually involved in bills
+  const membersInBills = new Set();
+  group.bills.forEach(bill => {
+    // Add the person who paid
+    if (bill.paidBy) membersInBills.add(bill.paidBy);
+    // Add all members in the split ratio
+    Object.keys(bill.splitRatio).forEach(memberId => {
+      if (bill.splitRatio[memberId] > 0) {
+        membersInBills.add(memberId);
+      }
+    });
+  });
+  
+  // Initialize balances only for members involved in bills
+  // This ensures new members added after bills are created don't affect calculations
+  membersInBills.forEach(memberId => {
+    balances[memberId] = 0;
+  });
+  
+  // Also initialize for all current members (for display purposes)
+  // But only calculate for those in bills
   group.members.forEach(member => {
-    balances[member.id] = 0;
+    if (!balances.hasOwnProperty(member.id)) {
+      balances[member.id] = 0; // New members not in any bills have 0 balance
+    }
   });
   
   // Process each bill
@@ -14,13 +36,19 @@ export const calculateBalances = (group) => {
     // Calculate each person's share
     const totalShares = Object.values(bill.splitRatio).reduce((sum, share) => sum + share, 0);
     
-    Object.entries(bill.splitRatio).forEach(([memberId, share]) => {
-      const memberShare = (share / totalShares) * totalAmount;
-      balances[memberId] -= memberShare; // They owe this amount
-    });
-    
-    // The person who paid gets credited
-    balances[paidBy] += totalAmount;
+    if (totalShares > 0) {
+      Object.entries(bill.splitRatio).forEach(([memberId, share]) => {
+        if (share > 0 && balances.hasOwnProperty(memberId)) {
+          const memberShare = (share / totalShares) * totalAmount;
+          balances[memberId] -= memberShare; // They owe this amount
+        }
+      });
+      
+      // The person who paid gets credited (only if they exist)
+      if (paidBy && balances.hasOwnProperty(paidBy)) {
+        balances[paidBy] += totalAmount;
+      }
+    }
   });
   
   return balances;

@@ -1,9 +1,10 @@
-import { BarChart3, TrendingUp, Tag, Users } from 'lucide-react'
-import { calculateExpenseStats } from '../utils/calculations'
+import { BarChart3, TrendingUp, Tag, Users, Calendar, Receipt } from 'lucide-react'
+import { calculateExpenseStats, calculateBalances } from '../utils/calculations'
 import { formatCurrency } from '../utils/currency'
 
 export default function ExpenseStats({ group }) {
   const stats = calculateExpenseStats(group)
+  const balances = calculateBalances(group)
   
   const getMemberName = (memberId) => {
     return group.members.find(m => m.id === memberId)?.name || 'Unknown'
@@ -23,6 +24,25 @@ export default function ExpenseStats({ group }) {
   
   const topSpender = Object.entries(stats.byMember)
     .sort((a, b) => b[1] - a[1])[0]
+
+  // Calculate additional stats
+  const largestBill = group.bills.reduce((max, bill) => 
+    bill.amount > max.amount ? bill : max, group.bills[0])
+  const smallestBill = group.bills.reduce((min, bill) => 
+    bill.amount < min.amount ? bill : min, group.bills[0])
+  
+  const billsByDate = group.bills
+    .map(bill => new Date(bill.createdAt))
+    .sort((a, b) => b - a)
+  const firstBillDate = billsByDate[billsByDate.length - 1]
+  const lastBillDate = billsByDate[0]
+  
+  const totalOwed = Object.values(balances)
+    .filter(b => b < 0)
+    .reduce((sum, b) => sum + Math.abs(b), 0)
+  const totalToReceive = Object.values(balances)
+    .filter(b => b > 0)
+    .reduce((sum, b) => sum + b, 0)
 
   return (
     <div className="space-y-6">
@@ -102,20 +122,99 @@ export default function ExpenseStats({ group }) {
           <div className="space-y-2">
             {Object.entries(stats.byMember)
               .sort((a, b) => b[1] - a[1])
-              .map(([memberId, amount]) => (
-                <div
-                  key={memberId}
-                  className="flex items-center justify-between p-3 bg-primary-50 rounded-lg"
-                >
-                  <span className="font-medium text-primary-900">{getMemberName(memberId)}</span>
-                  <span className="font-semibold text-primary-700">
-                    {formatCurrency(amount)}
-                  </span>
-                </div>
-              ))}
+              .map(([memberId, amount]) => {
+                const percentage = ((amount / stats.total) * 100).toFixed(1)
+                return (
+                  <div
+                    key={memberId}
+                    className="flex items-center justify-between p-3 bg-primary-50 rounded-lg"
+                  >
+                    <div className="flex-1">
+                      <span className="font-medium text-primary-900">{getMemberName(memberId)}</span>
+                      <span className="text-xs text-primary-500 ml-2">({percentage}%)</span>
+                    </div>
+                    <span className="font-semibold text-primary-700">
+                      {formatCurrency(amount)}
+                    </span>
+                  </div>
+                )
+              })}
           </div>
         </div>
       )}
+
+      {/* Additional Insights */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="card">
+          <h3 className="text-lg font-semibold text-primary-900 mb-4 flex items-center space-x-2">
+            <Receipt className="w-5 h-5" />
+            <span>Bill Insights</span>
+          </h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-2 bg-primary-50 rounded">
+              <span className="text-sm text-primary-700">Largest Bill</span>
+              <span className="font-semibold text-primary-900">
+                {formatCurrency(largestBill.amount)}
+              </span>
+            </div>
+            <div className="text-xs text-primary-600 pl-2">
+              {largestBill.description}
+            </div>
+            <div className="flex items-center justify-between p-2 bg-primary-50 rounded">
+              <span className="text-sm text-primary-700">Smallest Bill</span>
+              <span className="font-semibold text-primary-900">
+                {formatCurrency(smallestBill.amount)}
+              </span>
+            </div>
+            <div className="text-xs text-primary-600 pl-2">
+              {smallestBill.description}
+            </div>
+            <div className="flex items-center justify-between p-2 bg-primary-50 rounded">
+              <span className="text-sm text-primary-700">Average Bill</span>
+              <span className="font-semibold text-primary-900">
+                {formatCurrency(stats.total / stats.billCount)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <h3 className="text-lg font-semibold text-primary-900 mb-4 flex items-center space-x-2">
+            <Calendar className="w-5 h-5" />
+            <span>Timeline</span>
+          </h3>
+          <div className="space-y-3">
+            {firstBillDate && (
+              <div className="flex items-center justify-between p-2 bg-primary-50 rounded">
+                <span className="text-sm text-primary-700">First Bill</span>
+                <span className="text-sm font-medium text-primary-900">
+                  {firstBillDate.toLocaleDateString()}
+                </span>
+              </div>
+            )}
+            {lastBillDate && (
+              <div className="flex items-center justify-between p-2 bg-primary-50 rounded">
+                <span className="text-sm text-primary-700">Last Bill</span>
+                <span className="text-sm font-medium text-primary-900">
+                  {lastBillDate.toLocaleDateString()}
+                </span>
+              </div>
+            )}
+            <div className="flex items-center justify-between p-2 bg-primary-50 rounded">
+              <span className="text-sm text-primary-700">Total Outstanding</span>
+              <span className="font-semibold text-primary-900">
+                {formatCurrency(totalOwed)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between p-2 bg-primary-50 rounded">
+              <span className="text-sm text-primary-700">Total to Receive</span>
+              <span className="font-semibold text-green-700">
+                {formatCurrency(totalToReceive)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

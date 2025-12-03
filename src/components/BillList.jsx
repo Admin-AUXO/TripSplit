@@ -1,7 +1,7 @@
-import { Receipt, Trash2, DollarSign, Tag, User } from 'lucide-react'
+import { Receipt, Trash2, Tag, User, Edit } from 'lucide-react'
 import { formatCurrency } from '../utils/currency'
 
-export default function BillList({ bills, members, onDelete }) {
+export default function BillList({ bills, members, onDelete, onEdit }) {
   const getMemberName = (memberId) => {
     return members.find(m => m.id === memberId)?.name || 'Unknown'
   }
@@ -22,40 +22,54 @@ export default function BillList({ bills, members, onDelete }) {
         const paidByName = getMemberName(bill.paidBy)
         
         return (
-          <div key={bill.id} className="card">
+          <div key={bill.id} className="card hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between mb-3">
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-2">
-                  <h4 className="text-lg font-semibold text-primary-900">{bill.description}</h4>
-                  <span className="text-sm text-primary-500 bg-primary-100 px-2 py-1 rounded">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center flex-wrap gap-2 mb-2">
+                  <h4 className="text-lg font-semibold text-primary-900 break-words">{bill.description}</h4>
+                  <span className="text-xs text-primary-600 bg-primary-100 px-2 py-1 rounded whitespace-nowrap">
                     {bill.category}
                   </span>
                 </div>
-                <div className="flex items-center space-x-4 text-sm text-primary-600">
-                  <div className="flex items-center space-x-1">
-                    <DollarSign className="w-4 h-4" />
-                    <span className="font-semibold text-primary-900">{formatCurrency(bill.amount)}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <User className="w-4 h-4" />
-                    <span>Paid by {paidByName}</span>
+                <div className="flex items-center flex-wrap gap-3 text-sm">
+                  <span className="font-semibold text-primary-900 text-base">{formatCurrency(bill.amount)}</span>
+                  <div className="flex items-center space-x-1.5 text-primary-600">
+                    <User className="w-4 h-4 flex-shrink-0" />
+                    <span className="whitespace-nowrap">Paid by {paidByName}</span>
                   </div>
                 </div>
               </div>
-              <button
-                onClick={() => {
-                  if (confirm('Delete this bill?')) {
-                    onDelete(bill.id)
-                  }
-                }}
-                className="text-red-500 hover:text-red-700 p-1 ml-4"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              <div className="flex items-center space-x-1 ml-3 flex-shrink-0">
+                {onEdit && (
+                  <button
+                    onClick={() => onEdit(bill)}
+                    className="text-primary-600 hover:text-primary-800 p-1.5 rounded hover:bg-primary-50 transition-colors"
+                    title="Edit bill"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    if (confirm('Delete this bill?')) {
+                      onDelete(bill.id)
+                    }
+                  }}
+                  className="text-red-500 hover:text-red-700 p-1.5 rounded hover:bg-red-50 transition-colors"
+                  title="Delete bill"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
             
             <div className="border-t border-primary-100 pt-3 mt-3">
-              <p className="text-xs text-primary-600 mb-2 font-medium">Split among:</p>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs text-primary-600 font-medium">Split among:</p>
+                <p className="text-xs text-primary-500">
+                  {Object.values(bill.splitRatio).filter(share => share > 0).length} {Object.values(bill.splitRatio).filter(share => share > 0).length === 1 ? 'person' : 'people'}
+                </p>
+              </div>
               <div className="flex flex-wrap gap-2">
                 {Object.entries(bill.splitRatio).map(([memberId, share]) => {
                   if (share === 0) return null
@@ -65,10 +79,10 @@ export default function BillList({ bills, members, onDelete }) {
                   return (
                     <span
                       key={memberId}
-                      className={`text-xs px-2 py-1 rounded font-medium ${
+                      className={`text-xs px-2.5 py-1.5 rounded font-medium ${
                         isPaidBy
                           ? 'bg-primary-600 text-white'
-                          : 'bg-primary-50 text-primary-700'
+                          : 'bg-primary-50 text-primary-700 border border-primary-200'
                       }`}
                     >
                       {memberName}: {formatCurrency(memberShare)}

@@ -13,14 +13,20 @@ const CATEGORIES = [
   'Other'
 ]
 
-export default function NewBillModal({ onClose, onAdd, members }) {
-  const [description, setDescription] = useState('')
-  const [amount, setAmount] = useState('')
-  const [category, setCategory] = useState(CATEGORIES[0])
-  const [paidBy, setPaidBy] = useState(members[0]?.id || '')
-  const [splitType, setSplitType] = useState('equal') // 'equal' or 'custom'
-  const [customSplit, setCustomSplit] = useState({})
+export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
+  const [description, setDescription] = useState(editingBill?.description || '')
+  const [amount, setAmount] = useState(editingBill?.amount?.toString() || '')
+  const [category, setCategory] = useState(editingBill?.category || CATEGORIES[0])
+  const [paidBy, setPaidBy] = useState(editingBill?.paidBy || members[0]?.id || '')
+  const [splitType, setSplitType] = useState(editingBill ? 'custom' : 'equal') // 'equal' or 'custom'
+  const [customSplit, setCustomSplit] = useState(editingBill?.splitRatio || {})
   const [selectedMembers, setSelectedMembers] = useState(() => {
+    if (editingBill) {
+      // For editing, select members who have non-zero split ratio
+      return new Set(Object.entries(editingBill.splitRatio)
+        .filter(([_, share]) => share > 0)
+        .map(([memberId]) => memberId))
+    }
     // Initialize with all members selected
     return new Set(members.map(m => m.id))
   })
@@ -63,26 +69,28 @@ export default function NewBillModal({ onClose, onAdd, members }) {
       })
     }
 
-    const newBill = {
-      id: Date.now().toString(),
+    const bill = {
+      id: editingBill?.id || Date.now().toString(),
       description: description.trim(),
       amount: billAmount,
       category,
       paidBy,
       splitRatio,
-      createdAt: new Date().toISOString()
+      createdAt: editingBill?.createdAt || new Date().toISOString()
     }
 
-    onAdd(newBill)
+    onAdd(bill)
     
-    // Reset form
-    setDescription('')
-    setAmount('')
-    setCategory(CATEGORIES[0])
-    setPaidBy(members[0]?.id || '')
-    setSplitType('equal')
-    setCustomSplit({})
-    setSelectedMembers(new Set(members.map(m => m.id)))
+    // Reset form only if not editing
+    if (!editingBill) {
+      setDescription('')
+      setAmount('')
+      setCategory(CATEGORIES[0])
+      setPaidBy(members[0]?.id || '')
+      setSplitType('equal')
+      setCustomSplit({})
+      setSelectedMembers(new Set(members.map(m => m.id)))
+    }
   }
 
   // Update selected members when members list changes
@@ -151,7 +159,9 @@ export default function NewBillModal({ onClose, onAdd, members }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
       <div className="card max-w-2xl w-full my-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-primary-900">Add New Bill</h2>
+          <h2 className="text-2xl font-bold text-primary-900">
+            {editingBill ? 'Edit Bill' : 'Add New Bill'}
+          </h2>
           <button
             onClick={onClose}
             className="text-primary-600 hover:text-primary-800 p-1"
@@ -293,8 +303,9 @@ export default function NewBillModal({ onClose, onAdd, members }) {
                 {members.map(member => {
                   const isSelected = selectedMembers.has(member.id)
                   return (
-                    <label
+                    <div
                       key={member.id}
+                      onClick={() => toggleMember(member.id)}
                       className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
                         isSelected
                           ? 'bg-white border-2 border-primary-500'
@@ -323,7 +334,7 @@ export default function NewBillModal({ onClose, onAdd, members }) {
                           {formatCurrency(equalSplitPreview)}
                         </span>
                       )}
-                    </label>
+                    </div>
                   )
                 })}
               </div>
@@ -423,7 +434,7 @@ export default function NewBillModal({ onClose, onAdd, members }) {
               type="submit"
               className="btn-primary flex-1"
             >
-              Add Bill
+              {editingBill ? 'Update Bill' : 'Add Bill'}
             </button>
           </div>
         </form>
