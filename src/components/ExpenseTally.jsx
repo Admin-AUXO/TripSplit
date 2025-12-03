@@ -1,12 +1,32 @@
-import { Calculator, ArrowRight, Users, CheckCircle2, Download, Printer } from 'lucide-react'
+import { Calculator, ArrowRight, Users, CheckCircle2, Download, Printer, Clock, CheckCircle } from 'lucide-react'
 import { calculateBalances, calculateSettlements } from '../utils/calculations'
 import { formatCurrency } from '../utils/currency'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 
 export default function ExpenseTally({ group }) {
   const [paidSettlements, setPaidSettlements] = useState(new Set())
-  const balances = calculateBalances(group)
-  const settlements = calculateSettlements(balances)
+  const [activeTab, setActiveTab] = useState('pending')
+  
+  // Calculate balances considering paid settlements
+  const balances = useMemo(() => {
+    const baseBalances = calculateBalances(group)
+    const settlements = calculateSettlements(baseBalances)
+    
+    // Adjust balances based on paid settlements
+    const adjustedBalances = { ...baseBalances }
+    
+    settlements.forEach((settlement, index) => {
+      if (paidSettlements.has(index)) {
+        // Settlement is paid - adjust balances
+        adjustedBalances[settlement.from] = (adjustedBalances[settlement.from] || 0) + settlement.amount
+        adjustedBalances[settlement.to] = (adjustedBalances[settlement.to] || 0) - settlement.amount
+      }
+    })
+    
+    return adjustedBalances
+  }, [group, paidSettlements])
+  
+  const settlements = useMemo(() => calculateSettlements(calculateBalances(group)), [group])
   
   const getMemberName = (memberId) => {
     return group.members.find(m => m.id === memberId)?.name || 'Unknown'
@@ -127,15 +147,21 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
     )
   }
 
-  const creditors = Object.entries(balances)
-    .filter(([_, balance]) => balance > 0.01)
-    .map(([memberId, balance]) => ({ memberId, balance }))
-    .sort((a, b) => b.balance - a.balance)
+  const creditors = useMemo(() => 
+    Object.entries(balances)
+      .filter(([_, balance]) => balance > 0.01)
+      .map(([memberId, balance]) => ({ memberId, balance }))
+      .sort((a, b) => b.balance - a.balance),
+    [balances]
+  )
 
-  const debtors = Object.entries(balances)
-    .filter(([_, balance]) => balance < -0.01)
-    .map(([memberId, balance]) => ({ memberId, balance: Math.abs(balance) }))
-    .sort((a, b) => b.balance - a.balance)
+  const debtors = useMemo(() =>
+    Object.entries(balances)
+      .filter(([_, balance]) => balance < -0.01)
+      .map(([memberId, balance]) => ({ memberId, balance: Math.abs(balance) }))
+      .sort((a, b) => b.balance - a.balance),
+    [balances]
+  )
 
   return (
     <div className="space-y-6">
@@ -222,60 +248,103 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
               </button>
             </div>
           </div>
-          <p className="text-sm text-primary-600 mb-4">
-            To settle all expenses, make these payments:
-          </p>
-          <div className="space-y-3">
-            {settlements.map((settlement, index) => {
-              const isPaid = paidSettlements.has(index)
-              return (
-                <div
-                  key={index}
-                  className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
-                    isPaid
-                      ? 'bg-green-50 border-green-300'
-                      : 'bg-primary-50 border-primary-200'
-                  }`}
-                >
-                  <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
-                    <button
-                      onClick={() => toggleSettlementPaid(index)}
-                      className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
-                        isPaid
-                          ? 'bg-green-600 border-green-600'
-                          : 'border-primary-300 bg-white hover:border-primary-500'
-                      }`}
-                      title={isPaid ? 'Mark as unpaid' : 'Mark as paid'}
-                    >
-                      {isPaid && <CheckCircle2 className="w-4 h-4 text-white" />}
-                    </button>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-primary-900 text-sm sm:text-base truncate">{getMemberName(settlement.from)}</p>
-                      <p className="text-xs sm:text-sm text-primary-600">should pay</p>
-                    </div>
-                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-primary-400 flex-shrink-0" />
-                    <div className="flex-1 min-w-0 text-right">
-                      <p className="font-medium text-primary-900 text-sm sm:text-base truncate">{getMemberName(settlement.to)}</p>
-                      <p className="text-xs sm:text-sm text-primary-600">should receive</p>
-                    </div>
-                  </div>
-                  <div className={`ml-2 sm:ml-4 px-3 sm:px-4 py-2 rounded-lg font-bold text-sm sm:text-base flex-shrink-0 ${
-                    isPaid
-                      ? 'bg-green-600 text-white'
-                      : 'bg-primary-600 text-white'
-                  }`}>
-                    {formatCurrency(settlement.amount)}
-                  </div>
-                </div>
-              )
-            })}
+
+          {/* Tabs */}
+          <div className="border-b border-primary-200 mb-4">
+            <div className="flex space-x-1">
+              <button
+                onClick={() => setActiveTab('pending')}
+                className={`px-4 py-2 font-medium text-sm transition-colors duration-200 border-b-2 flex items-center space-x-2 ${
+                  activeTab === 'pending'
+                    ? 'border-primary-600 text-primary-600'
+                    : 'border-transparent text-primary-500 hover:text-primary-700'
+                }`}
+              >
+                <Clock className="w-4 h-4" />
+                <span>Pending ({settlements.length - paidSettlements.size})</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('paid')}
+                className={`px-4 py-2 font-medium text-sm transition-colors duration-200 border-b-2 flex items-center space-x-2 ${
+                  activeTab === 'paid'
+                    ? 'border-primary-600 text-primary-600'
+                    : 'border-transparent text-primary-500 hover:text-primary-700'
+                }`}
+              >
+                <CheckCircle className="w-4 h-4" />
+                <span>Paid ({paidSettlements.size})</span>
+              </button>
+            </div>
           </div>
-          {paidSettlements.size > 0 && (
-            <div className="mt-4 pt-4 border-t border-primary-200">
-              <p className="text-sm text-primary-600">
-                <span className="font-semibold text-green-600">{paidSettlements.size}</span> of{' '}
-                <span className="font-semibold">{settlements.length}</span> settlements marked as paid
-              </p>
+
+          {/* Settlement List */}
+          <div className="space-y-3">
+            {settlements
+              .filter((_, index) => {
+                const isPaid = paidSettlements.has(index)
+                return activeTab === 'pending' ? !isPaid : isPaid
+              })
+              .map((settlement, originalIndex) => {
+                const index = settlements.findIndex(s => 
+                  s.from === settlement.from && 
+                  s.to === settlement.to && 
+                  s.amount === settlement.amount
+                )
+                const isPaid = paidSettlements.has(index)
+                return (
+                  <div
+                    key={`${settlement.from}-${settlement.to}-${settlement.amount}-${index}`}
+                    className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                      isPaid
+                        ? 'bg-green-50 border-green-300'
+                        : 'bg-primary-50 border-primary-200'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                      <button
+                        onClick={() => toggleSettlementPaid(index)}
+                        className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
+                          isPaid
+                            ? 'bg-green-600 border-green-600'
+                            : 'border-primary-300 bg-white hover:border-primary-500'
+                        }`}
+                        title={isPaid ? 'Mark as unpaid' : 'Mark as paid'}
+                      >
+                        {isPaid && <CheckCircle2 className="w-4 h-4 text-white" />}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-primary-900 text-sm sm:text-base truncate">{getMemberName(settlement.from)}</p>
+                        <p className="text-xs sm:text-sm text-primary-600">should pay</p>
+                      </div>
+                      <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-primary-400 flex-shrink-0" />
+                      <div className="flex-1 min-w-0 text-right">
+                        <p className="font-medium text-primary-900 text-sm sm:text-base truncate">{getMemberName(settlement.to)}</p>
+                        <p className="text-xs sm:text-sm text-primary-600">should receive</p>
+                      </div>
+                    </div>
+                    <div className={`ml-2 sm:ml-4 px-3 sm:px-4 py-2 rounded-lg font-bold text-sm sm:text-base flex-shrink-0 ${
+                      isPaid
+                        ? 'bg-green-600 text-white'
+                        : 'bg-primary-600 text-white'
+                    }`}>
+                      {formatCurrency(settlement.amount)}
+                    </div>
+                  </div>
+                )
+              })}
+          </div>
+
+          {activeTab === 'pending' && settlements.filter((_, index) => !paidSettlements.has(index)).length === 0 && (
+            <div className="text-center py-8 text-primary-600">
+              <CheckCircle className="w-12 h-12 mx-auto mb-3 text-green-500" />
+              <p className="font-medium">All settlements are paid!</p>
+            </div>
+          )}
+
+          {activeTab === 'paid' && paidSettlements.size === 0 && (
+            <div className="text-center py-8 text-primary-600">
+              <Clock className="w-12 h-12 mx-auto mb-3 text-primary-300" />
+              <p className="font-medium">No paid settlements yet</p>
             </div>
           )}
         </div>

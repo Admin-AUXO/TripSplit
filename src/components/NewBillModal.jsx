@@ -1,4 +1,4 @@
-import { X, Check, Users, Receipt, DollarSign, Tag, User, Divide } from 'lucide-react'
+import { X, Check, Users, Receipt, Coins, Tag, User, Divide } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { formatCurrency } from '../utils/currency'
 
@@ -199,7 +199,7 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
               <div>
                 <label className="block text-sm font-medium text-primary-900 mb-2">
                   <div className="flex items-center space-x-1">
-                    <DollarSign className="w-4 h-4" />
+                    <Coins className="w-4 h-4" />
                     <span>Amount <span className="text-red-500">*</span></span>
                   </div>
                 </label>
