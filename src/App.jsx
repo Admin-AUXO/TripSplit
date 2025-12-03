@@ -70,6 +70,19 @@ function App() {
       createdAt: new Date().toISOString()
     }
     const updatedGroups = [...groups, newGroup]
+    
+    // Immediately save to shared storage before updating state
+    isUpdatingRef.current = true
+    try {
+      await saveData({ groups: updatedGroups })
+      setIsConnected(true)
+    } catch (error) {
+      console.error('Error saving new group:', error)
+      setIsConnected(false)
+    } finally {
+      isUpdatingRef.current = false
+    }
+    
     setGroups(updatedGroups)
     setSelectedGroupId(newGroup.id)
     setShowNewGroupModal(false)

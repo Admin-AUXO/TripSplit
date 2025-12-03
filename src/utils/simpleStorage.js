@@ -51,16 +51,30 @@ export const loadGroups = async () => {
 
     if (!response.ok) {
       if (response.status === 404) {
+        // Storage doesn't exist yet - return empty array
         return []
       }
       throw new Error(`HTTP error! status: ${response.status}`)
     }
 
     const data = await response.json()
-    return data.groups || []
+    const groups = data.groups || []
+    
+    // Also update LocalStorage as backup (but don't use it as primary source)
+    if (groups.length > 0) {
+      saveToLocalStorage(groups)
+    }
+    
+    return groups
   } catch (error) {
-    console.warn('Error loading from JSON storage, using LocalStorage:', error.message)
-    return loadFromLocalStorage()
+    console.error('Error loading from JSON storage:', error.message)
+    // Only use LocalStorage as last resort if we can't connect at all
+    // But warn the user that data might be stale
+    const localGroups = loadFromLocalStorage()
+    if (localGroups.length > 0) {
+      console.warn('Using LocalStorage backup - data may not be synced with others')
+    }
+    return localGroups
   }
 }
 
@@ -76,7 +90,8 @@ export const saveGroups = async (groups) => {
       lastUpdated: new Date().toISOString()
     }
 
-    const response = await fetch(`${JSON_STORAGE_URL}${storageId}`, {
+    // Try PUT first (update existing)
+    let response = await fetch(`${JSON_STORAGE_URL}${storageId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -86,32 +101,46 @@ export const saveGroups = async (groups) => {
       body: JSON.stringify(body)
     })
 
-    if (!response.ok) {
-      // If item doesn't exist, try to create it
-      if (response.status === 404) {
-        const createResponse = await fetch(JSON_STORAGE_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Master-Key': MASTER_KEY,
-            'X-Access-Key': ACCESS_KEY
-          },
-          body: JSON.stringify({
-            id: storageId,
-            ...body
-          })
+    // If item doesn't exist (404), create it
+    if (response.status === 404) {
+      response = await fetch(JSON_STORAGE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': MASTER_KEY,
+          'X-Access-Key': ACCESS_KEY
+        },
+        body: JSON.stringify({
+          id: storageId,
+          ...body
         })
-        
-        if (!createResponse.ok) {
-          throw new Error(`HTTP error creating item! status: ${createResponse.status}`)
-        }
-        return
+      })
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unknown error')
+      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`)
+    }
+
+    // Verify the save was successful by reading it back
+    const verifyResponse = await fetch(`${JSON_STORAGE_URL}${storageId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': MASTER_KEY,
+        'X-Access-Key': ACCESS_KEY
       }
-      throw new Error(`HTTP error! status: ${response.status}`)
+    })
+
+    if (verifyResponse.ok) {
+      const savedData = await verifyResponse.json()
+      if (JSON.stringify(savedData.groups || []) !== JSON.stringify(groups)) {
+        console.warn('Data verification failed - saved data may differ')
+      }
     }
   } catch (error) {
-    console.warn('Error saving to JSON storage:', error.message)
-    // Don't throw - LocalStorage backup is already saved
+    console.error('Error saving to JSON storage:', error.message)
+    throw error // Re-throw so caller knows save failed
   }
 }
 
@@ -136,9 +165,9 @@ export const subscribeToGroups = (callback) => {
       console.error('Error polling storage:', error)
     }
 
-    // Poll every 2 seconds
+    // Poll every 1 second for faster updates
     if (isActive) {
-      setTimeout(poll, 2000)
+      setTimeout(poll, 1000)
     }
   }
 
@@ -146,8 +175,8 @@ export const subscribeToGroups = (callback) => {
   loadGroups().then(groups => {
     callback(groups)
     lastDataHash = JSON.stringify(groups)
-    // Start polling
-    setTimeout(poll, 2000)
+    // Start polling immediately
+    setTimeout(poll, 1000)
   })
 
   // Return unsubscribe function
