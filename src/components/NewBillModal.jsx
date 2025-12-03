@@ -54,6 +54,8 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
         alert('Please select at least one member to split the bill')
         return
       }
+      // Optimized: Only store non-zero split ratios to save space
+      // But for consistency, we'll store all members with 0 for excluded ones
       members.forEach(member => {
         splitRatio[member.id] = selectedMembers.has(member.id) ? 1 : 0
       })

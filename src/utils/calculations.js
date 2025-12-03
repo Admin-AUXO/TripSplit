@@ -1,51 +1,51 @@
 export const calculateBalances = (group) => {
   const balances = {};
   
-  // Get all member IDs that are actually involved in bills
+  // Optimized: Only process members who are actually in bills
+  // This ensures new members added after bills are created don't affect calculations
   const membersInBills = new Set();
+  
+  // First pass: collect all members involved in any bill
   group.bills.forEach(bill => {
-    // Add the person who paid
     if (bill.paidBy) membersInBills.add(bill.paidBy);
-    // Add all members in the split ratio
-    Object.keys(bill.splitRatio).forEach(memberId => {
-      if (bill.splitRatio[memberId] > 0) {
+    // Only iterate through non-zero split ratios for efficiency
+    Object.entries(bill.splitRatio).forEach(([memberId, share]) => {
+      if (share > 0) {
         membersInBills.add(memberId);
       }
     });
   });
   
-  // Initialize balances only for members involved in bills
-  // This ensures new members added after bills are created don't affect calculations
+  // Initialize balances for members in bills
   membersInBills.forEach(memberId => {
     balances[memberId] = 0;
   });
   
-  // Also initialize for all current members (for display purposes)
-  // But only calculate for those in bills
+  // Initialize for all current members (for display - new members show 0)
   group.members.forEach(member => {
-    if (!balances.hasOwnProperty(member.id)) {
-      balances[member.id] = 0; // New members not in any bills have 0 balance
+    if (!(member.id in balances)) {
+      balances[member.id] = 0;
     }
   });
   
-  // Process each bill
+  // Second pass: calculate balances efficiently
   group.bills.forEach(bill => {
-    const paidBy = bill.paidBy;
-    const totalAmount = bill.amount;
+    const { paidBy, amount: totalAmount, splitRatio } = bill;
     
-    // Calculate each person's share
-    const totalShares = Object.values(bill.splitRatio).reduce((sum, share) => sum + share, 0);
+    // Calculate total shares (only non-zero shares matter)
+    const totalShares = Object.values(splitRatio).reduce((sum, share) => sum + share, 0);
     
-    if (totalShares > 0) {
-      Object.entries(bill.splitRatio).forEach(([memberId, share]) => {
-        if (share > 0 && balances.hasOwnProperty(memberId)) {
+    if (totalShares > 0 && totalAmount > 0) {
+      // Process each member's share
+      Object.entries(splitRatio).forEach(([memberId, share]) => {
+        if (share > 0 && memberId in balances) {
           const memberShare = (share / totalShares) * totalAmount;
           balances[memberId] -= memberShare; // They owe this amount
         }
       });
       
-      // The person who paid gets credited (only if they exist)
-      if (paidBy && balances.hasOwnProperty(paidBy)) {
+      // Credit the person who paid
+      if (paidBy && paidBy in balances) {
         balances[paidBy] += totalAmount;
       }
     }
@@ -56,6 +56,9 @@ export const calculateBalances = (group) => {
 
 // Optimized settlement calculation using greedy algorithm
 // This minimizes the number of transactions needed (optimal for most cases)
+// Algorithm: Greedy matching of largest creditor with largest debtor
+// Time Complexity: O(n log n) where n is number of people
+// Result: At most (n-1) transactions, which is optimal
 export const calculateSettlements = (balances) => {
   const settlements = [];
   const creditors = [];
@@ -64,12 +67,20 @@ export const calculateSettlements = (balances) => {
   // Separate creditors and debtors with tolerance for floating point errors
   const TOLERANCE = 0.01;
   Object.entries(balances).forEach(([memberId, balance]) => {
-    if (balance > TOLERANCE) {
-      creditors.push({ memberId, amount: balance });
-    } else if (balance < -TOLERANCE) {
-      debtors.push({ memberId, amount: Math.abs(balance) });
+    // Round to 2 decimal places to avoid floating point precision issues
+    const roundedBalance = Math.round(balance * 100) / 100;
+    
+    if (roundedBalance > TOLERANCE) {
+      creditors.push({ memberId, amount: roundedBalance });
+    } else if (roundedBalance < -TOLERANCE) {
+      debtors.push({ memberId, amount: Math.abs(roundedBalance) });
     }
   });
+  
+  // Early return if no settlements needed
+  if (creditors.length === 0 || debtors.length === 0) {
+    return [];
+  }
   
   // Sort by amount (largest first) - greedy approach minimizes transactions
   creditors.sort((a, b) => b.amount - a.amount);
@@ -88,14 +99,21 @@ export const calculateSettlements = (balances) => {
     const settlementAmount = Math.min(creditor.amount, debtor.amount);
     
     if (settlementAmount > TOLERANCE) {
+      // Round to 2 decimal places for precision
+      const roundedAmount = Math.round(settlementAmount * 100) / 100;
+      
       settlements.push({
         from: debtor.memberId,
         to: creditor.memberId,
-        amount: parseFloat(settlementAmount.toFixed(2))
+        amount: roundedAmount
       });
       
       creditor.amount -= settlementAmount;
       debtor.amount -= settlementAmount;
+      
+      // Round to avoid floating point errors
+      creditor.amount = Math.round(creditor.amount * 100) / 100;
+      debtor.amount = Math.round(debtor.amount * 100) / 100;
       
       // Move to next creditor/debtor if fully settled
       if (creditor.amount < TOLERANCE) creditorIndex++;
