@@ -51,6 +51,7 @@ function App() {
       saveData({ groups })
         .then(() => {
           isUpdatingRef.current = false
+          setIsConnected(true)
         })
         .catch(error => {
           console.error('Error saving data:', error)

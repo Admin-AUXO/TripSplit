@@ -8,18 +8,12 @@ const JSON_STORAGE_URL = 'https://jsonstorage.net/api/items/'
 const MASTER_KEY = import.meta.env.VITE_JSONSTORAGE_MASTER_KEY || '$2a$10$g7iT2hmHMBIoiIPfngh7bumI343YP0ZxWah62esACMww2j4/4l7.u'
 const ACCESS_KEY = import.meta.env.VITE_JSONSTORAGE_ACCESS_KEY || '$2a$10$htXfOoDZFL37PUTmkMjoJOiw9qjqr5g5omyjWfNaBANY1aYmLSMIO'
 
-// Generate a unique storage ID (you can change this)
-// All users sharing the same URL will use the same storage ID
+// Use a fixed storage ID so ALL users share the same data
+// This ensures groups created by anyone are visible to everyone
 const getStorageId = () => {
-  // Use a fixed ID so all users share the same data
-  // You can change this to any unique string
-  let storageId = localStorage.getItem('tripsplit_storage_id')
-  if (!storageId) {
-    // Generate a simple ID based on the app
-    storageId = 'tripsplit-shared-' + btoa('tripsplit').substring(0, 16)
-    localStorage.setItem('tripsplit_storage_id', storageId)
-  }
-  return storageId
+  // Fixed ID - same for all users so everyone sees the same groups
+  // This is the shared storage that everyone accesses
+  return 'tripsplit-shared-public'
 }
 
 // Fallback to LocalStorage
