@@ -1,4 +1,4 @@
-import { X, Check, Users } from 'lucide-react'
+import { X, Check, Users, Receipt, DollarSign, Tag, User, Divide } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { formatCurrency } from '../utils/currency'
 
@@ -173,118 +173,166 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-primary-900 mb-2">
-              Description *
-            </label>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="e.g., Dinner at Restaurant"
-              className="input-field"
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Bill Details Section */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2 mb-3">
+              <Receipt className="w-5 h-5 text-primary-600" />
+              <h3 className="text-lg font-semibold text-primary-900">Bill Details</h3>
+            </div>
+            
             <div>
               <label className="block text-sm font-medium text-primary-900 mb-2">
-                Amount *
+                Description <span className="text-red-500">*</span>
               </label>
               <input
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="e.g., Dinner at Restaurant"
                 className="input-field"
                 required
               />
             </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-primary-900 mb-2">
+                  <div className="flex items-center space-x-1">
+                    <DollarSign className="w-4 h-4" />
+                    <span>Amount <span className="text-red-500">*</span></span>
+                  </div>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary-600 font-semibold">₹</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="input-field pl-8"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-primary-900 mb-2">
+                  <div className="flex items-center space-x-1">
+                    <Tag className="w-4 h-4" />
+                    <span>Category</span>
+                  </div>
+                </label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="input-field"
+                >
+                  {CATEGORIES.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-primary-900 mb-2">
-                Category
+                <div className="flex items-center space-x-1">
+                  <User className="w-4 h-4" />
+                  <span>Paid By <span className="text-red-500">*</span></span>
+                </div>
               </label>
               <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                value={paidBy}
+                onChange={(e) => setPaidBy(e.target.value)}
                 className="input-field"
+                required
               >
-                {CATEGORIES.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
+                {members.map(member => (
+                  <option key={member.id} value={member.id}>{member.name}</option>
                 ))}
               </select>
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-primary-900 mb-2">
-              Paid By *
-            </label>
-            <select
-              value={paidBy}
-              onChange={(e) => setPaidBy(e.target.value)}
-              className="input-field"
-              required
-            >
-              {members.map(member => (
-                <option key={member.id} value={member.id}>{member.name}</option>
-              ))}
-            </select>
-          </div>
+          {/* Divider */}
+          <div className="border-t border-primary-200"></div>
 
-          <div>
-            <label className="block text-sm font-medium text-primary-900 mb-2">
-              Split Type
-            </label>
-            <div className="flex flex-wrap gap-4">
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="radio"
-                  value="equal"
-                  checked={splitType === 'equal'}
-                  onChange={(e) => setSplitType(e.target.value)}
-                  className="mr-2 w-4 h-4 text-primary-600 focus:ring-primary-500"
-                />
-                <span className="text-primary-900 font-medium text-sm sm:text-base">Equal Split</span>
+          {/* Split Options Section */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2 mb-3">
+              <Divide className="w-5 h-5 text-primary-600" />
+              <h3 className="text-lg font-semibold text-primary-900">Split Options</h3>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-primary-900 mb-3">
+                How would you like to split this bill?
               </label>
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="radio"
-                  value="custom"
-                  checked={splitType === 'custom'}
-                  onChange={(e) => setSplitType(e.target.value)}
-                  className="mr-2 w-4 h-4 text-primary-600 focus:ring-primary-500"
-                />
-                <span className="text-primary-900 font-medium text-sm sm:text-base">Custom Split</span>
-              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label className={`flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                  splitType === 'equal'
+                    ? 'border-primary-500 bg-primary-50'
+                    : 'border-primary-200 bg-white hover:border-primary-300'
+                }`}>
+                  <input
+                    type="radio"
+                    value="equal"
+                    checked={splitType === 'equal'}
+                    onChange={(e) => setSplitType(e.target.value)}
+                    className="mr-3 w-5 h-5 text-primary-600 focus:ring-primary-500"
+                  />
+                  <div>
+                    <div className="font-semibold text-primary-900">Equal Split</div>
+                    <div className="text-xs text-primary-600 mt-1">Divide equally among selected members</div>
+                  </div>
+                </label>
+                <label className={`flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                  splitType === 'custom'
+                    ? 'border-primary-500 bg-primary-50'
+                    : 'border-primary-200 bg-white hover:border-primary-300'
+                }`}>
+                  <input
+                    type="radio"
+                    value="custom"
+                    checked={splitType === 'custom'}
+                    onChange={(e) => setSplitType(e.target.value)}
+                    className="mr-3 w-5 h-5 text-primary-600 focus:ring-primary-500"
+                  />
+                  <div>
+                    <div className="font-semibold text-primary-900">Custom Split</div>
+                    <div className="text-xs text-primary-600 mt-1">Set custom amounts for each member</div>
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
 
           {splitType === 'equal' && (
-            <div className="border border-primary-200 rounded-lg p-4 bg-primary-50">
-              <div className="flex items-center justify-between mb-3">
-                <label className="block text-sm font-medium text-primary-900">
-                  Select Members to Include
-                </label>
-                <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            <div className="border-2 border-primary-200 rounded-xl p-4 sm:p-5 bg-gradient-to-br from-primary-50 to-white">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+                <div>
+                  <label className="block text-sm font-semibold text-primary-900 mb-1">
+                    Select Members to Include
+                  </label>
+                  <p className="text-xs text-primary-600">Choose who should share this expense</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={selectAllMembers}
-                    className="text-xs px-2 py-1 text-primary-700 hover:text-primary-900 hover:bg-primary-100 rounded transition-colors"
+                    className="text-xs px-3 py-1.5 text-primary-700 bg-white hover:text-primary-900 hover:bg-primary-100 rounded-md transition-colors border border-primary-300 font-medium"
                   >
-                    All
+                    Select All
                   </button>
                   {paidBy && (
                     <>
                       <button
                         type="button"
                         onClick={excludePaidBy}
-                        className="text-xs px-1.5 sm:px-2 py-1 text-primary-700 hover:text-primary-900 hover:bg-primary-100 rounded transition-colors"
+                        className="text-xs px-2 sm:px-3 py-1.5 text-primary-700 bg-white hover:text-primary-900 hover:bg-primary-100 rounded-md transition-colors border border-primary-300 font-medium"
                         title="Exclude the person who paid"
                       >
                         <span className="hidden sm:inline">Exclude Paid By</span>
@@ -293,7 +341,7 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
                       <button
                         type="button"
                         onClick={includeOnlyPaidBy}
-                        className="text-xs px-1.5 sm:px-2 py-1 text-primary-700 hover:text-primary-900 hover:bg-primary-100 rounded transition-colors"
+                        className="text-xs px-2 sm:px-3 py-1.5 text-primary-700 bg-white hover:text-primary-900 hover:bg-primary-100 rounded-md transition-colors border border-primary-300 font-medium"
                         title="Include only the person who paid"
                       >
                         <span className="hidden sm:inline">Only Paid By</span>
@@ -304,40 +352,46 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
                 </div>
               </div>
               
-              <div className="space-y-2 mb-3">
+              <div className="space-y-2 mb-4">
                 {members.map(member => {
                   const isSelected = selectedMembers.has(member.id)
+                  const isPaidBy = member.id === paidBy
                   return (
                     <div
                       key={member.id}
                       onClick={() => toggleMember(member.id)}
-                      className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
+                      className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all ${
                         isSelected
-                          ? 'bg-white border-2 border-primary-500'
-                          : 'bg-primary-100 border-2 border-transparent hover:bg-primary-200'
+                          ? 'bg-white border-2 border-primary-500 shadow-sm'
+                          : 'bg-white border-2 border-primary-200 hover:border-primary-300 hover:shadow-sm'
                       }`}
                     >
-                      <div className="flex items-center space-x-3 flex-1">
-                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
                           isSelected
                             ? 'bg-primary-600 border-primary-600'
                             : 'border-primary-300 bg-white'
                         }`}>
-                          {isSelected && <Check className="w-3 h-3 text-white" />}
+                          {isSelected && <Check className="w-4 h-4 text-white" />}
                         </div>
-                        <span className={`font-medium ${isSelected ? 'text-primary-900' : 'text-primary-700'}`}>
-                          {member.name}
-                        </span>
-                        {member.id === paidBy && (
-                          <span className="text-xs bg-primary-600 text-white px-2 py-0.5 rounded">
-                            Paid
+                        <div className="flex items-center space-x-2 flex-1 min-w-0">
+                          <span className={`font-semibold text-sm sm:text-base truncate ${isSelected ? 'text-primary-900' : 'text-primary-700'}`}>
+                            {member.name}
                           </span>
-                        )}
+                          {isPaidBy && (
+                            <span className="text-xs bg-primary-600 text-white px-2 py-0.5 rounded-full flex-shrink-0 font-medium">
+                              Paid
+                            </span>
+                          )}
+                        </div>
                       </div>
                       {isSelected && equalSplitPreview && (
-                        <span className="text-sm font-semibold text-primary-700">
-                          {formatCurrency(equalSplitPreview)}
-                        </span>
+                        <div className="ml-3 flex-shrink-0 text-right">
+                          <div className="text-sm font-bold text-primary-900">
+                            {formatCurrency(equalSplitPreview)}
+                          </div>
+                          <div className="text-xs text-primary-600">each</div>
+                        </div>
                       )}
                     </div>
                   )
@@ -345,99 +399,129 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
               </div>
 
               {equalSplitPreview && selectedMembers.size > 0 && (
-                <div className="mt-3 pt-3 border-t border-primary-200 bg-white rounded p-3">
-                  <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-primary-600 font-medium">Each person pays:</span>
-                    <span className="font-bold text-primary-900 text-lg">
-                      {formatCurrency(equalSplitPreview)}
-                    </span>
+                <div className="mt-4 pt-4 border-t-2 border-primary-200 bg-gradient-to-r from-primary-100 to-white rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <Users className="w-5 h-5 text-primary-600" />
+                      <div>
+                        <div className="text-sm font-medium text-primary-700">Split Summary</div>
+                        <div className="text-xs text-primary-600">{selectedMembers.size} {selectedMembers.size === 1 ? 'person' : 'people'} included</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-primary-600 mb-1">Each person pays</div>
+                      <div className="text-2xl font-bold text-primary-900">
+                        {formatCurrency(equalSplitPreview)}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-primary-500">
-                    <span className="flex items-center space-x-1">
-                      <Users className="w-3 h-3" />
-                      <span>{selectedMembers.size} {selectedMembers.size === 1 ? 'person' : 'people'} included</span>
-                    </span>
-                    <span className="font-medium">Total: {formatCurrency(parseFloat(amount))}</span>
+                  <div className="pt-3 border-t border-primary-200 flex items-center justify-between">
+                    <span className="text-sm text-primary-600 font-medium">Total Bill Amount:</span>
+                    <span className="text-lg font-bold text-primary-900">{formatCurrency(parseFloat(amount))}</span>
                   </div>
                 </div>
               )}
 
               {selectedMembers.size === 0 && (
-                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-300 rounded-lg text-sm text-yellow-800 flex items-center space-x-2">
-                  <span className="text-yellow-600 font-bold">⚠️</span>
-                  <span>Please select at least one member to split the bill</span>
+                <div className="mt-4 p-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg flex items-start space-x-3">
+                  <span className="text-yellow-600 font-bold text-lg flex-shrink-0">⚠️</span>
+                  <div>
+                    <div className="text-sm font-semibold text-yellow-900 mb-1">No members selected</div>
+                    <div className="text-xs text-yellow-800">Please select at least one member to split this bill</div>
+                  </div>
                 </div>
               )}
             </div>
           )}
 
               {splitType === 'custom' && (
-            <div className="border border-primary-200 rounded-lg p-3 sm:p-4 bg-primary-50">
-              <label className="block text-xs sm:text-sm font-medium text-primary-900 mb-3">
-                Custom Split Ratios (use 0 to exclude a member)
-              </label>
-              <div className="space-y-2 mb-3">
+            <div className="border-2 border-primary-200 rounded-xl p-4 sm:p-5 bg-gradient-to-br from-primary-50 to-white">
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-primary-900 mb-1">
+                  Custom Split Ratios
+                </label>
+                <p className="text-xs text-primary-600">Enter the share for each member (use 0 to exclude)</p>
+              </div>
+              <div className="space-y-3 mb-4">
                 {members.map(member => {
                   const share = parseFloat(customSplit[member.id] || 0)
                   const totalShares = Object.values(customSplit).reduce((sum, s) => sum + parseFloat(s || 0), 0)
                   const memberShare = totalShares > 0 && parseFloat(amount) > 0 
                     ? (share / totalShares) * parseFloat(amount) 
                     : 0
+                  const isPaidBy = member.id === paidBy
                   
                   return (
-                    <div key={member.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
-                      <span className="text-xs sm:text-sm text-primary-900 font-medium flex items-center space-x-2 min-w-0 flex-1 sm:flex-initial sm:w-32">
-                        <span className="truncate">{member.name}</span>
-                        {member.id === paidBy && (
-                          <span className="text-xs bg-primary-600 text-white px-1.5 py-0.5 rounded flex-shrink-0">
-                            Paid
-                          </span>
-                        )}
-                      </span>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={customSplit[member.id] || ''}
-                        onChange={(e) => setCustomSplit({
-                          ...customSplit,
-                          [member.id]: e.target.value
-                        })}
-                        placeholder="0"
-                        className="input-field flex-1 sm:flex-initial sm:flex-1 text-sm"
-                      />
-                      {share > 0 && memberShare > 0 && (
-                        <span className="text-xs sm:text-sm font-semibold text-primary-700 sm:w-24 text-left sm:text-right flex-shrink-0">
-                          {formatCurrency(memberShare)}
-                        </span>
-                      )}
+                    <div key={member.id} className="bg-white border border-primary-200 rounded-lg p-3 hover:border-primary-300 transition-colors">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                        <div className="flex items-center space-x-2 flex-1 min-w-0">
+                          <User className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                          <span className="text-sm font-semibold text-primary-900 truncate">{member.name}</span>
+                          {isPaidBy && (
+                            <span className="text-xs bg-primary-600 text-white px-2 py-0.5 rounded-full flex-shrink-0 font-medium">
+                              Paid
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                          <div className="relative flex-1 sm:flex-initial sm:w-32">
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={customSplit[member.id] || ''}
+                              onChange={(e) => setCustomSplit({
+                                ...customSplit,
+                                [member.id]: e.target.value
+                              })}
+                              placeholder="0.00"
+                              className="input-field text-sm"
+                            />
+                          </div>
+                          {share > 0 && memberShare > 0 && (
+                            <div className="text-right flex-shrink-0 sm:w-28">
+                              <div className="text-sm font-bold text-primary-900">
+                                {formatCurrency(memberShare)}
+                              </div>
+                              <div className="text-xs text-primary-600">share</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   )
                 })}
               </div>
               
               {parseFloat(amount) > 0 && (
-                <div className="mt-3 pt-3 border-t border-primary-200">
-                  <div className="flex items-center justify-between text-xs text-primary-600">
-                    <span>Total shares: {Object.values(customSplit).reduce((sum, s) => sum + parseFloat(s || 0), 0).toFixed(2)}</span>
-                    <span>Total amount: {formatCurrency(parseFloat(amount))}</span>
+                <div className="mt-4 pt-4 border-t-2 border-primary-200 bg-gradient-to-r from-primary-100 to-white rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-primary-700">Total Shares:</span>
+                    <span className="text-lg font-bold text-primary-900">
+                      {Object.values(customSplit).reduce((sum, s) => sum + parseFloat(s || 0), 0).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-primary-200">
+                    <span className="text-sm font-medium text-primary-700">Total Bill Amount:</span>
+                    <span className="text-lg font-bold text-primary-900">{formatCurrency(parseFloat(amount))}</span>
                   </div>
                 </div>
               )}
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4">
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-primary-200">
             <button
               type="button"
               onClick={onClose}
-              className="btn-secondary flex-1 order-2 sm:order-1"
+              className="btn-secondary flex-1 order-2 sm:order-1 py-3"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="btn-primary flex-1 order-1 sm:order-2"
+              className="btn-primary flex-1 order-1 sm:order-2 py-3 text-base font-semibold shadow-lg hover:shadow-xl"
             >
               {editingBill ? 'Update Bill' : 'Add Bill'}
             </button>
