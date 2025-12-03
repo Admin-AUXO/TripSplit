@@ -23,9 +23,11 @@ function App() {
       if (data.groups && data.groups.length > 0 && !selectedGroupId) {
         setSelectedGroupId(data.groups[0].id)
       }
+      setIsConnected(true) // Successfully loaded from shared storage
       setIsLoading(false)
     }).catch(error => {
       console.error('Error loading initial data:', error)
+      // Don't set offline immediately - might be a temporary network issue
       setIsLoading(false)
     })
 
@@ -33,7 +35,7 @@ function App() {
     unsubscribeRef.current = subscribeToGroups((updatedGroups) => {
       if (!isUpdatingRef.current) {
         setGroups(updatedGroups)
-        setIsConnected(true)
+        setIsConnected(true) // Successfully received updates
       }
     })
 
@@ -55,7 +57,8 @@ function App() {
         })
         .catch(error => {
           console.error('Error saving data:', error)
-          setIsConnected(false)
+          // Only set offline if it's a persistent error, not a temporary network issue
+          // The polling will recover connection status
           isUpdatingRef.current = false
         })
     }
@@ -78,7 +81,7 @@ function App() {
       setIsConnected(true)
     } catch (error) {
       console.error('Error saving new group:', error)
-      setIsConnected(false)
+      // Don't set offline immediately - might be temporary, polling will recover
     } finally {
       isUpdatingRef.current = false
     }

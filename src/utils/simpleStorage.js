@@ -163,6 +163,7 @@ export const subscribeToGroups = (callback) => {
       }
     } catch (error) {
       console.error('Error polling storage:', error)
+      // Don't stop polling on error - might be temporary network issue
     }
 
     // Poll every 1 second for faster updates
