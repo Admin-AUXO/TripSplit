@@ -91,26 +91,26 @@ export default function GroupView({ group, onUpdateGroup, onBack }) {
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Groups</span>
         </button>
-        <h2 className="text-3xl font-bold text-primary-900">{group.name}</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 break-words">{group.name}</h2>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-primary-200 mb-6">
-        <div className="flex space-x-1">
+      <div className="border-b border-primary-200 mb-4 sm:mb-6 overflow-x-auto">
+        <div className="flex space-x-1 min-w-max sm:min-w-0">
           {tabs.map(tab => {
             const Icon = tab.icon
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-3 font-medium text-sm transition-colors duration-200 border-b-2 ${
+                className={`px-3 sm:px-6 py-2.5 sm:py-3 font-medium text-xs sm:text-sm transition-colors duration-200 border-b-2 whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'border-primary-600 text-primary-600'
                     : 'border-transparent text-primary-500 hover:text-primary-700'
                 }`}
               >
-                <div className="flex items-center space-x-2">
-                  <Icon className="w-4 h-4" />
+                <div className="flex items-center space-x-1.5 sm:space-x-2">
+                  <Icon className="w-4 h-4 flex-shrink-0" />
                   <span>{tab.label}</span>
                 </div>
               </button>
@@ -123,11 +123,11 @@ export default function GroupView({ group, onUpdateGroup, onBack }) {
       <div>
         {activeTab === 'members' && (
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-primary-900">Group Members</h3>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0 mb-4">
+              <h3 className="text-lg sm:text-xl font-semibold text-primary-900">Group Members</h3>
               <button
                 onClick={() => setShowNewMemberModal(true)}
-                className="btn-primary flex items-center space-x-2"
+                className="btn-primary flex items-center justify-center space-x-2"
                 disabled={group.members.length >= 20}
               >
                 <Plus className="w-4 h-4" />
@@ -144,11 +144,11 @@ export default function GroupView({ group, onUpdateGroup, onBack }) {
 
         {activeTab === 'bills' && (
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-primary-900">Bills</h3>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0 mb-4">
+              <h3 className="text-lg sm:text-xl font-semibold text-primary-900">Bills</h3>
               <button
                 onClick={() => setShowNewBillModal(true)}
-                className="btn-primary flex items-center space-x-2"
+                className="btn-primary flex items-center justify-center space-x-2"
                 disabled={group.members.length === 0}
               >
                 <Plus className="w-4 h-4" />

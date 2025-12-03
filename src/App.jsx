@@ -98,24 +98,24 @@ function App() {
 
   return (
     <div className="min-h-screen">
-      <header className="bg-white shadow-sm border-b border-primary-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <header className="bg-white shadow-sm border-b border-primary-200 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="bg-primary-600 p-2 rounded-lg">
-                <Receipt className="w-6 h-6 text-white" />
+            <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+              <div className="bg-primary-600 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                <Receipt className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <h1 className="text-2xl font-bold text-primary-900">TripSplit</h1>
-              <div className="flex items-center space-x-2 ml-4">
+              <h1 className="text-xl sm:text-2xl font-bold text-primary-900 truncate">TripSplit</h1>
+              <div className="flex items-center space-x-1 sm:space-x-2 ml-2 sm:ml-4 flex-shrink-0">
                 {isConnected ? (
-                  <div className="flex items-center space-x-1 text-green-600 text-sm">
-                    <Wifi className="w-4 h-4" />
-                    <span>Shared</span>
+                  <div className="flex items-center space-x-1 text-green-600 text-xs sm:text-sm">
+                    <Wifi className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Shared</span>
                   </div>
                 ) : (
-                  <div className="flex items-center space-x-1 text-red-600 text-sm">
-                    <WifiOff className="w-4 h-4" />
-                    <span>Offline</span>
+                  <div className="flex items-center space-x-1 text-red-600 text-xs sm:text-sm">
+                    <WifiOff className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Offline</span>
                   </div>
                 )}
               </div>
@@ -123,17 +123,18 @@ function App() {
             {activeView === 'group' && selectedGroup && (
               <button
                 onClick={() => setActiveView('groups')}
-                className="btn-secondary flex items-center space-x-2"
+                className="btn-secondary flex items-center justify-center space-x-2 flex-shrink-0"
               >
                 <Home className="w-4 h-4" />
-                <span>All Groups</span>
+                <span className="hidden sm:inline">All Groups</span>
+                <span className="sm:hidden">Groups</span>
               </button>
             )}
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-8">
         {isLoading && (
           <div className="text-center py-12">
             <p className="text-primary-600">Loading shared data...</p>

@@ -25,16 +25,16 @@ export default function BillList({ bills, members, onDelete, onEdit }) {
           <div key={bill.id} className="card hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center flex-wrap gap-2 mb-2">
-                  <h4 className="text-lg font-semibold text-primary-900 break-words">{bill.description}</h4>
-                  <span className="text-xs text-primary-600 bg-primary-100 px-2 py-1 rounded whitespace-nowrap">
+                <div className="flex items-start sm:items-center flex-wrap gap-2 mb-2">
+                  <h4 className="text-base sm:text-lg font-semibold text-primary-900 break-words flex-1 min-w-0">{bill.description}</h4>
+                  <span className="text-xs text-primary-600 bg-primary-100 px-2 py-1 rounded whitespace-nowrap flex-shrink-0">
                     {bill.category}
                   </span>
                 </div>
-                <div className="flex items-center flex-wrap gap-3 text-sm">
-                  <span className="font-semibold text-primary-900 text-base">{formatCurrency(bill.amount)}</span>
+                <div className="flex items-center flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm">
+                  <span className="font-semibold text-primary-900 text-sm sm:text-base">{formatCurrency(bill.amount)}</span>
                   <div className="flex items-center space-x-1.5 text-primary-600">
-                    <User className="w-4 h-4 flex-shrink-0" />
+                    <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                     <span className="whitespace-nowrap">Paid by {paidByName}</span>
                   </div>
                 </div>

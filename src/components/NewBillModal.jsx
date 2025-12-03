@@ -158,15 +158,16 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
   const equalSplitPreview = calculateEqualSplitPreview()
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="card max-w-2xl w-full my-8">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-start sm:items-center z-50 p-2 sm:p-4 overflow-y-auto">
+      <div className="card max-w-2xl w-full my-4 sm:my-8 max-h-[calc(100vh-2rem)] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-primary-900">
+          <h2 className="text-xl sm:text-2xl font-bold text-primary-900">
             {editingBill ? 'Edit Bill' : 'Add New Bill'}
           </h2>
           <button
             onClick={onClose}
-            className="text-primary-600 hover:text-primary-800 p-1"
+            className="text-primary-600 hover:text-primary-800 p-1 flex-shrink-0"
+            aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>
@@ -187,7 +188,7 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-primary-900 mb-2">
                 Amount *
@@ -240,7 +241,7 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
             <label className="block text-sm font-medium text-primary-900 mb-2">
               Split Type
             </label>
-            <div className="flex space-x-4">
+            <div className="flex flex-wrap gap-4">
               <label className="flex items-center cursor-pointer">
                 <input
                   type="radio"
@@ -249,7 +250,7 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
                   onChange={(e) => setSplitType(e.target.value)}
                   className="mr-2 w-4 h-4 text-primary-600 focus:ring-primary-500"
                 />
-                <span className="text-primary-900 font-medium">Equal Split</span>
+                <span className="text-primary-900 font-medium text-sm sm:text-base">Equal Split</span>
               </label>
               <label className="flex items-center cursor-pointer">
                 <input
@@ -259,7 +260,7 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
                   onChange={(e) => setSplitType(e.target.value)}
                   className="mr-2 w-4 h-4 text-primary-600 focus:ring-primary-500"
                 />
-                <span className="text-primary-900 font-medium">Custom Split</span>
+                <span className="text-primary-900 font-medium text-sm sm:text-base">Custom Split</span>
               </label>
             </div>
           </div>
@@ -270,7 +271,7 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
                 <label className="block text-sm font-medium text-primary-900">
                   Select Members to Include
                 </label>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   <button
                     type="button"
                     onClick={selectAllMembers}
@@ -283,18 +284,20 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
                       <button
                         type="button"
                         onClick={excludePaidBy}
-                        className="text-xs px-2 py-1 text-primary-700 hover:text-primary-900 hover:bg-primary-100 rounded transition-colors"
+                        className="text-xs px-1.5 sm:px-2 py-1 text-primary-700 hover:text-primary-900 hover:bg-primary-100 rounded transition-colors"
                         title="Exclude the person who paid"
                       >
-                        Exclude Paid By
+                        <span className="hidden sm:inline">Exclude Paid By</span>
+                        <span className="sm:hidden">Exclude</span>
                       </button>
                       <button
                         type="button"
                         onClick={includeOnlyPaidBy}
-                        className="text-xs px-2 py-1 text-primary-700 hover:text-primary-900 hover:bg-primary-100 rounded transition-colors"
+                        className="text-xs px-1.5 sm:px-2 py-1 text-primary-700 hover:text-primary-900 hover:bg-primary-100 rounded transition-colors"
                         title="Include only the person who paid"
                       >
-                        Only Paid By
+                        <span className="hidden sm:inline">Only Paid By</span>
+                        <span className="sm:hidden">Only</span>
                       </button>
                     </>
                   )}
@@ -368,9 +371,9 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
             </div>
           )}
 
-          {splitType === 'custom' && (
-            <div className="border border-primary-200 rounded-lg p-4 bg-primary-50">
-              <label className="block text-sm font-medium text-primary-900 mb-3">
+              {splitType === 'custom' && (
+            <div className="border border-primary-200 rounded-lg p-3 sm:p-4 bg-primary-50">
+              <label className="block text-xs sm:text-sm font-medium text-primary-900 mb-3">
                 Custom Split Ratios (use 0 to exclude a member)
               </label>
               <div className="space-y-2 mb-3">
@@ -382,11 +385,11 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
                     : 0
                   
                   return (
-                    <div key={member.id} className="flex items-center space-x-3">
-                      <span className="w-32 text-sm text-primary-900 font-medium flex items-center space-x-2">
-                        <span>{member.name}</span>
+                    <div key={member.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+                      <span className="text-xs sm:text-sm text-primary-900 font-medium flex items-center space-x-2 min-w-0 flex-1 sm:flex-initial sm:w-32">
+                        <span className="truncate">{member.name}</span>
                         {member.id === paidBy && (
-                          <span className="text-xs bg-primary-600 text-white px-1.5 py-0.5 rounded">
+                          <span className="text-xs bg-primary-600 text-white px-1.5 py-0.5 rounded flex-shrink-0">
                             Paid
                           </span>
                         )}
@@ -401,10 +404,10 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
                           [member.id]: e.target.value
                         })}
                         placeholder="0"
-                        className="input-field flex-1"
+                        className="input-field flex-1 sm:flex-initial sm:flex-1 text-sm"
                       />
                       {share > 0 && memberShare > 0 && (
-                        <span className="text-sm font-semibold text-primary-700 w-24 text-right">
+                        <span className="text-xs sm:text-sm font-semibold text-primary-700 sm:w-24 text-left sm:text-right flex-shrink-0">
                           {formatCurrency(memberShare)}
                         </span>
                       )}
@@ -424,17 +427,17 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
             </div>
           )}
 
-          <div className="flex space-x-3 pt-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="btn-secondary flex-1"
+              className="btn-secondary flex-1 order-2 sm:order-1"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="btn-primary flex-1"
+              className="btn-primary flex-1 order-1 sm:order-2"
             >
               {editingBill ? 'Update Bill' : 'Add Bill'}
             </button>

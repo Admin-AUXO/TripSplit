@@ -196,17 +196,17 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
       {/* Settlement Suggestions */}
       {settlements.length > 0 && (
         <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold text-primary-900">Settlement Suggestions</h3>
-              <p className="text-sm text-primary-600 mt-1">
-                {settlements.length} payment{settlements.length !== 1 ? 's' : ''} needed (optimized to minimize transactions)
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base sm:text-lg font-semibold text-primary-900">Settlement Suggestions</h3>
+              <p className="text-xs sm:text-sm text-primary-600 mt-1">
+                {settlements.length} payment{settlements.length !== 1 ? 's' : ''} needed • Optimized to minimize transactions
               </p>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
               <button
                 onClick={exportSettlements}
-                className="btn-secondary flex items-center space-x-2 text-sm py-2 px-3"
+                className="btn-secondary flex items-center justify-center space-x-2 text-xs sm:text-sm py-2 px-3 flex-1 sm:flex-initial"
                 title="Export as text file"
               >
                 <Download className="w-4 h-4" />
@@ -214,7 +214,7 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
               </button>
               <button
                 onClick={printSettlements}
-                className="btn-secondary flex items-center space-x-2 text-sm py-2 px-3"
+                className="btn-secondary flex items-center justify-center space-x-2 text-xs sm:text-sm py-2 px-3 flex-1 sm:flex-initial"
                 title="Print settlement summary"
               >
                 <Printer className="w-4 h-4" />
@@ -237,10 +237,10 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
                       : 'bg-primary-50 border-primary-200'
                   }`}
                 >
-                  <div className="flex items-center space-x-3 flex-1">
+                  <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
                     <button
                       onClick={() => toggleSettlementPaid(index)}
-                      className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+                      className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
                         isPaid
                           ? 'bg-green-600 border-green-600'
                           : 'border-primary-300 bg-white hover:border-primary-500'
@@ -249,17 +249,17 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
                     >
                       {isPaid && <CheckCircle2 className="w-4 h-4 text-white" />}
                     </button>
-                    <div className="flex-1">
-                      <p className="font-medium text-primary-900">{getMemberName(settlement.from)}</p>
-                      <p className="text-sm text-primary-600">should pay</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-primary-900 text-sm sm:text-base truncate">{getMemberName(settlement.from)}</p>
+                      <p className="text-xs sm:text-sm text-primary-600">should pay</p>
                     </div>
-                    <ArrowRight className="w-5 h-5 text-primary-400" />
-                    <div className="flex-1 text-right">
-                      <p className="font-medium text-primary-900">{getMemberName(settlement.to)}</p>
-                      <p className="text-sm text-primary-600">should receive</p>
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-primary-400 flex-shrink-0" />
+                    <div className="flex-1 min-w-0 text-right">
+                      <p className="font-medium text-primary-900 text-sm sm:text-base truncate">{getMemberName(settlement.to)}</p>
+                      <p className="text-xs sm:text-sm text-primary-600">should receive</p>
                     </div>
                   </div>
-                  <div className={`ml-4 px-4 py-2 rounded-lg font-bold ${
+                  <div className={`ml-2 sm:ml-4 px-3 sm:px-4 py-2 rounded-lg font-bold text-sm sm:text-base flex-shrink-0 ${
                     isPaid
                       ? 'bg-green-600 text-white'
                       : 'bg-primary-600 text-white'

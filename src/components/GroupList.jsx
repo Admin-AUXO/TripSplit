@@ -3,10 +3,10 @@ import { Plus, Trash2, Users, Calendar, Receipt } from 'lucide-react'
 export default function GroupList({ groups, selectedGroupId, onSelectGroup, onCreateGroup, onDeleteGroup }) {
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-3xl font-bold text-primary-900">Your Groups</h2>
-        <button onClick={onCreateGroup} className="btn-primary flex items-center space-x-2">
-          <Plus className="w-5 h-5" />
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+        <h2 className="text-2xl sm:text-3xl font-bold text-primary-900">Your Groups</h2>
+        <button onClick={onCreateGroup} className="btn-primary flex items-center justify-center space-x-2">
+          <Plus className="w-4 h-5" />
           <span>New Group</span>
         </button>
       </div>
