@@ -253,10 +253,10 @@ export default function GroupView({ group, onUpdateGroup, onBack, onSave, onShow
             )}
           </div>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 break-words">{group.name}</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 dark:text-primary-100 break-words">{group.name}</h2>
       </div>
 
-      <div className="border-b border-primary-200 mb-4 sm:mb-6 overflow-x-auto">
+      <div className="border-b border-primary-200 dark:border-primary-700 mb-4 sm:mb-6 overflow-x-auto">
         <div className="flex space-x-1 min-w-max sm:min-w-0">
           {tabs.map(tab => {
             const Icon = tab.icon
@@ -266,8 +266,8 @@ export default function GroupView({ group, onUpdateGroup, onBack, onSave, onShow
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-3 sm:px-6 py-2.5 sm:py-3 font-medium text-xs sm:text-sm transition-colors duration-200 border-b-2 whitespace-nowrap ${
                   activeTab === tab.id
-                    ? 'border-primary-600 text-primary-600'
-                    : 'border-transparent text-primary-500 hover:text-primary-700'
+                    ? 'border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                    : 'border-transparent text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300'
                 }`}
               >
                 <div className="flex items-center space-x-1.5 sm:space-x-2">

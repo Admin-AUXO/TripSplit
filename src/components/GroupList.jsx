@@ -5,7 +5,7 @@ export default function GroupList({ groups, selectedGroupId, onSelectGroup, onCr
   return (
     <div>
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
-        <h2 className="text-2xl sm:text-3xl font-bold text-primary-900">Your Groups</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 dark:text-primary-100">Your Groups</h2>
         <button onClick={onCreateGroup} className="btn-primary flex items-center justify-center space-x-2">
           <Plus className="w-4 h-5" />
           <span>New Group</span>
@@ -41,7 +41,7 @@ export default function GroupList({ groups, selectedGroupId, onSelectGroup, onCr
               onClick={() => onSelectGroup(group.id)}
             >
               <div className="flex items-start justify-between mb-4">
-                <h3 className="text-xl font-bold text-primary-900">{group.name}</h3>
+                <h3 className="text-xl font-bold text-primary-900 dark:text-primary-100">{group.name}</h3>
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
@@ -49,13 +49,13 @@ export default function GroupList({ groups, selectedGroupId, onSelectGroup, onCr
                       onDeleteGroup(group.id)
                     }
                   }}
-                  className="text-red-500 hover:text-red-700 p-1"
+                  className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 p-1"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
               
-              <div className="space-y-2 text-sm text-primary-600">
+              <div className="space-y-2 text-sm text-primary-600 dark:text-primary-400">
                 <div className="flex items-center space-x-2">
                   <Users className="w-4 h-4" />
                   <span>{group.members.length} {group.members.length === 1 ? 'member' : 'members'}</span>

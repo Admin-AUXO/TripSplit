@@ -167,8 +167,8 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
   if (group.members.length === 0) {
     return (
       <div className="card text-center py-8">
-        <Users className="w-12 h-12 text-primary-300 mx-auto mb-3" />
-        <p className="text-primary-600">Add members to see expense tallies</p>
+        <Users className="w-12 h-12 text-primary-300 dark:text-primary-600 mx-auto mb-3" />
+        <p className="text-primary-600 dark:text-primary-400">Add members to see expense tallies</p>
       </div>
     )
   }
@@ -176,8 +176,8 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
   if (group.bills.length === 0) {
     return (
       <div className="card text-center py-8">
-        <Calculator className="w-12 h-12 text-primary-300 mx-auto mb-3" />
-        <p className="text-primary-600">Add bills to see who owes whom</p>
+        <Calculator className="w-12 h-12 text-primary-300 dark:text-primary-600 mx-auto mb-3" />
+        <p className="text-primary-600 dark:text-primary-400">Add bills to see who owes whom</p>
       </div>
     )
   }
@@ -200,14 +200,14 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
 
   return (
     <div className="space-y-6">
-      <div className="card bg-gradient-to-r from-primary-500 to-primary-600 text-white">
+      <div className="card bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 text-white">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-primary-100 text-sm mb-1">Total Expenses</p>
-            <p className="text-3xl font-bold">{formatCurrency(totalExpenses)}</p>
+            <p className="text-primary-100 dark:text-primary-50 text-sm mb-1">Total Expenses</p>
+            <p className="text-3xl font-bold text-white">{formatCurrency(totalExpenses)}</p>
           </div>
-          <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-            <Calculator className="w-8 h-8" />
+          <div className="bg-white bg-opacity-20 dark:bg-white dark:bg-opacity-30 p-3 rounded-lg">
+            <Calculator className="w-8 h-8 text-white" />
           </div>
         </div>
       </div>
@@ -215,17 +215,17 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {creditors.length > 0 && (
           <div className="card">
-            <h3 className="text-lg font-semibold text-primary-900 mb-4">
+            <h3 className="text-lg font-semibold text-primary-900 dark:text-primary-100 mb-4">
               Gets Back
             </h3>
             <div className="space-y-2">
               {creditors.map(({ memberId, balance }) => (
                 <div
                   key={memberId}
-                  className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200"
+                  className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/30 rounded-lg border border-green-200 dark:border-green-700"
                 >
-                  <span className="font-medium text-primary-900">{getMemberName(memberId)}</span>
-                  <span className="font-semibold text-green-700">+{formatCurrency(balance)}</span>
+                  <span className="font-medium text-primary-900 dark:text-primary-100">{getMemberName(memberId)}</span>
+                  <span className="font-semibold text-green-700 dark:text-green-400">+{formatCurrency(balance)}</span>
                 </div>
               ))}
             </div>
@@ -234,17 +234,17 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
 
         {debtors.length > 0 && (
           <div className="card">
-            <h3 className="text-lg font-semibold text-primary-900 mb-4">
+            <h3 className="text-lg font-semibold text-primary-900 dark:text-primary-100 mb-4">
               Owes
             </h3>
             <div className="space-y-2">
               {debtors.map(({ memberId, balance }) => (
                 <div
                   key={memberId}
-                  className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200"
+                  className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-700"
                 >
-                  <span className="font-medium text-primary-900">{getMemberName(memberId)}</span>
-                  <span className="font-semibold text-red-700">-{formatCurrency(balance)}</span>
+                  <span className="font-medium text-primary-900 dark:text-primary-100">{getMemberName(memberId)}</span>
+                  <span className="font-semibold text-red-700 dark:text-red-400">-{formatCurrency(balance)}</span>
                 </div>
               ))}
             </div>
@@ -256,8 +256,8 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
         <div className="card">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4">
             <div className="flex-1 min-w-0">
-              <h3 className="text-base sm:text-lg font-semibold text-primary-900">Settlement Suggestions</h3>
-              <p className="text-xs sm:text-sm text-primary-600 mt-1">
+              <h3 className="text-base sm:text-lg font-semibold text-primary-900 dark:text-primary-100">Settlement Suggestions</h3>
+              <p className="text-xs sm:text-sm text-primary-600 dark:text-primary-400 mt-1">
                 {settlements.length} payment{settlements.length !== 1 ? 's' : ''} needed • Optimized to minimize transactions
               </p>
             </div>
@@ -296,14 +296,14 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
             </div>
           </div>
 
-          <div className="border-b border-primary-200 mb-4">
+          <div className="border-b border-primary-200 dark:border-primary-700 mb-4">
             <div className="flex space-x-1">
               <button
                 onClick={() => setActiveTab('pending')}
                 className={`px-4 py-2 font-medium text-sm transition-colors duration-200 border-b-2 flex items-center space-x-2 ${
                   activeTab === 'pending'
-                    ? 'border-primary-600 text-primary-600'
-                    : 'border-transparent text-primary-500 hover:text-primary-700'
+                    ? 'border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                    : 'border-transparent text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300'
                 }`}
               >
                 <Clock className="w-4 h-4" />
@@ -313,8 +313,8 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
                 onClick={() => setActiveTab('paid')}
                 className={`px-4 py-2 font-medium text-sm transition-colors duration-200 border-b-2 flex items-center space-x-2 ${
                   activeTab === 'paid'
-                    ? 'border-primary-600 text-primary-600'
-                    : 'border-transparent text-primary-500 hover:text-primary-700'
+                    ? 'border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                    : 'border-transparent text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300'
                 }`}
               >
                 <CheckCircle className="w-4 h-4" />
@@ -341,8 +341,8 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
                     key={`${settlement.from}-${settlement.to}-${settlement.amount}-${index}`}
                     className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
                       isPaid
-                        ? 'bg-green-50 border-green-300'
-                        : 'bg-primary-50 border-primary-200'
+                        ? 'bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-700'
+                        : 'bg-primary-50 dark:bg-primary-700 border-primary-200 dark:border-primary-600'
                     }`}
                   >
                     <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
@@ -350,21 +350,21 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
                         onClick={() => toggleSettlementPaid(index)}
                         className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
                           isPaid
-                            ? 'bg-green-600 border-green-600'
-                            : 'border-primary-300 bg-white hover:border-primary-500'
+                            ? 'bg-green-600 dark:bg-green-500 border-green-600 dark:border-green-500'
+                            : 'border-primary-300 dark:border-primary-600 bg-white dark:bg-primary-800 hover:border-primary-500 dark:hover:border-primary-400'
                         }`}
                         title={isPaid ? 'Mark as unpaid' : 'Mark as paid'}
                       >
                         {isPaid && <CheckCircle2 className="w-4 h-4 text-white" />}
                       </button>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-primary-900 text-sm sm:text-base truncate">{getMemberName(settlement.from)}</p>
-                        <p className="text-xs sm:text-sm text-primary-600">should pay</p>
+                        <p className="font-medium text-primary-900 dark:text-primary-100 text-sm sm:text-base truncate">{getMemberName(settlement.from)}</p>
+                        <p className="text-xs sm:text-sm text-primary-600 dark:text-primary-400">should pay</p>
                       </div>
-                      <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-primary-400 flex-shrink-0" />
+                      <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-primary-400 dark:text-primary-500 flex-shrink-0" />
                       <div className="flex-1 min-w-0 text-right">
-                        <p className="font-medium text-primary-900 text-sm sm:text-base truncate">{getMemberName(settlement.to)}</p>
-                        <p className="text-xs sm:text-sm text-primary-600">should receive</p>
+                        <p className="font-medium text-primary-900 dark:text-primary-100 text-sm sm:text-base truncate">{getMemberName(settlement.to)}</p>
+                        <p className="text-xs sm:text-sm text-primary-600 dark:text-primary-400">should receive</p>
                       </div>
                     </div>
                     <div className={`ml-2 sm:ml-4 px-3 sm:px-4 py-2 rounded-lg font-bold text-sm sm:text-base flex-shrink-0 ${
@@ -380,15 +380,15 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
           </div>
 
           {activeTab === 'pending' && settlements.filter((_, index) => !paidSettlements.has(index)).length === 0 && (
-            <div className="text-center py-8 text-primary-600">
-              <CheckCircle className="w-12 h-12 mx-auto mb-3 text-green-500" />
+            <div className="text-center py-8 text-primary-600 dark:text-primary-400">
+              <CheckCircle className="w-12 h-12 mx-auto mb-3 text-green-500 dark:text-green-400" />
               <p className="font-medium">All settlements are paid!</p>
             </div>
           )}
 
           {activeTab === 'paid' && paidSettlements.size === 0 && (
-            <div className="text-center py-8 text-primary-600">
-              <Clock className="w-12 h-12 mx-auto mb-3 text-primary-300" />
+            <div className="text-center py-8 text-primary-600 dark:text-primary-400">
+              <Clock className="w-12 h-12 mx-auto mb-3 text-primary-300 dark:text-primary-600" />
               <p className="font-medium">No paid settlements yet</p>
             </div>
           )}
@@ -397,8 +397,8 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
 
       {settlements.length === 0 && creditors.length === 0 && debtors.length === 0 && (
         <div className="card text-center py-8">
-          <Calculator className="w-12 h-12 text-primary-300 mx-auto mb-3" />
-          <p className="text-primary-600">All expenses are balanced! No settlements needed.</p>
+          <Calculator className="w-12 h-12 text-primary-300 dark:text-primary-600 mx-auto mb-3" />
+          <p className="text-primary-600 dark:text-primary-400">All expenses are balanced! No settlements needed.</p>
         </div>
       )}
     </div>
