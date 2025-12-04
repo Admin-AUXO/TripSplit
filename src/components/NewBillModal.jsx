@@ -2,6 +2,19 @@ import { X, Check, Users, Receipt, Coins, Tag, User, Divide } from 'lucide-react
 import { useState, useEffect } from 'react'
 import { formatCurrency } from '../utils/currency'
 
+// Helper to lock/unlock body scroll
+const useBodyScrollLock = (isLocked) => {
+  useEffect(() => {
+    if (isLocked) {
+      const originalStyle = window.getComputedStyle(document.body).overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = originalStyle
+      }
+    }
+  }, [isLocked])
+}
+
 const CATEGORIES = [
   'Food & Dining',
   'Transportation',
@@ -28,6 +41,8 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
     }
     return new Set(members.map(m => m.id))
   })
+
+  useBodyScrollLock(true)
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -146,15 +161,15 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
   const equalSplitPreview = calculateEqualSplitPreview()
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-start sm:items-center z-50 p-2 sm:p-4 overflow-y-auto">
-      <div className="card max-w-2xl w-full my-4 sm:my-8 max-h-[calc(100vh-2rem)] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-start sm:items-center z-50 p-2 sm:p-4 overflow-y-auto" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="card max-w-2xl w-full my-4 sm:my-8 max-h-[calc(100vh-2rem)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl sm:text-2xl font-bold text-primary-900">
+          <h2 className="text-xl sm:text-2xl font-bold text-primary-900 dark:text-primary-100">
             {editingBill ? 'Edit Bill' : 'Add New Bill'}
           </h2>
           <button
             onClick={onClose}
-            className="text-primary-600 hover:text-primary-800 p-1 flex-shrink-0"
+            className="text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-200 p-1 flex-shrink-0"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -164,13 +179,13 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <div className="flex items-center space-x-2 mb-3">
-              <Receipt className="w-5 h-5 text-primary-600" />
-              <h3 className="text-lg font-semibold text-primary-900">Bill Details</h3>
+              <Receipt className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+              <h3 className="text-lg font-semibold text-primary-900 dark:text-primary-100">Bill Details</h3>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-primary-900 mb-2">
-                Description <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-primary-900 dark:text-primary-100 mb-2">
+                Description <span className="text-red-500 dark:text-red-400">*</span>
               </label>
               <input
                 type="text"
@@ -184,14 +199,14 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-primary-900 mb-2">
+                <label className="block text-sm font-medium text-primary-900 dark:text-primary-100 mb-2">
                   <div className="flex items-center space-x-1">
                     <Coins className="w-4 h-4" />
-                    <span>Amount <span className="text-red-500">*</span></span>
+                    <span>Amount <span className="text-red-500 dark:text-red-400">*</span></span>
                   </div>
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary-600 font-semibold">₹</span>
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary-600 dark:text-primary-400 font-semibold">₹</span>
                   <input
                     type="number"
                     step="0.01"
@@ -206,7 +221,7 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-primary-900 mb-2">
+                <label className="block text-sm font-medium text-primary-900 dark:text-primary-100 mb-2">
                   <div className="flex items-center space-x-1">
                     <Tag className="w-4 h-4" />
                     <span>Category</span>
@@ -225,10 +240,10 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-primary-900 mb-2">
+              <label className="block text-sm font-medium text-primary-900 dark:text-primary-100 mb-2">
                 <div className="flex items-center space-x-1">
                   <User className="w-4 h-4" />
-                  <span>Paid By <span className="text-red-500">*</span></span>
+                  <span>Paid By <span className="text-red-500 dark:text-red-400">*</span></span>
                 </div>
               </label>
               <select
@@ -244,23 +259,23 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
             </div>
           </div>
 
-          <div className="border-t border-primary-200"></div>
+          <div className="border-t border-primary-200 dark:border-primary-600"></div>
 
           <div className="space-y-4">
             <div className="flex items-center space-x-2 mb-3">
-              <Divide className="w-5 h-5 text-primary-600" />
-              <h3 className="text-lg font-semibold text-primary-900">Split Options</h3>
+              <Divide className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+              <h3 className="text-lg font-semibold text-primary-900 dark:text-primary-100">Split Options</h3>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-primary-900 mb-3">
+              <label className="block text-sm font-medium text-primary-900 dark:text-primary-100 mb-3">
                 How would you like to split this bill?
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <label className={`flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all ${
                   splitType === 'equal'
-                    ? 'border-primary-500 bg-primary-50'
-                    : 'border-primary-200 bg-white hover:border-primary-300'
+                    ? 'border-primary-500 dark:border-primary-400 bg-primary-50 dark:bg-primary-700'
+                    : 'border-primary-200 dark:border-primary-600 bg-white dark:bg-primary-800 hover:border-primary-300 dark:hover:border-primary-500'
                 }`}>
                   <input
                     type="radio"
@@ -270,14 +285,14 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
                     className="mr-3 w-5 h-5 text-primary-600 focus:ring-primary-500"
                   />
                   <div>
-                    <div className="font-semibold text-primary-900">Equal Split</div>
-                    <div className="text-xs text-primary-600 mt-1">Divide equally among selected members</div>
+                    <div className="font-semibold text-primary-900 dark:text-primary-100">Equal Split</div>
+                    <div className="text-xs text-primary-600 dark:text-primary-400 mt-1">Divide equally among selected members</div>
                   </div>
                 </label>
                 <label className={`flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all ${
                   splitType === 'custom'
-                    ? 'border-primary-500 bg-primary-50'
-                    : 'border-primary-200 bg-white hover:border-primary-300'
+                    ? 'border-primary-500 dark:border-primary-400 bg-primary-50 dark:bg-primary-700'
+                    : 'border-primary-200 dark:border-primary-600 bg-white dark:bg-primary-800 hover:border-primary-300 dark:hover:border-primary-500'
                 }`}>
                   <input
                     type="radio"
@@ -287,8 +302,8 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
                     className="mr-3 w-5 h-5 text-primary-600 focus:ring-primary-500"
                   />
                   <div>
-                    <div className="font-semibold text-primary-900">Custom Split</div>
-                    <div className="text-xs text-primary-600 mt-1">Set custom amounts for each member</div>
+                    <div className="font-semibold text-primary-900 dark:text-primary-100">Custom Split</div>
+                    <div className="text-xs text-primary-600 dark:text-primary-400 mt-1">Set custom amounts for each member</div>
                   </div>
                 </label>
               </div>
@@ -296,19 +311,19 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
           </div>
 
           {splitType === 'equal' && (
-            <div className="border-2 border-primary-200 rounded-xl p-4 sm:p-5 bg-gradient-to-br from-primary-50 to-white">
+            <div className="border-2 border-primary-200 dark:border-primary-600 rounded-xl p-4 sm:p-5 bg-gradient-to-br from-primary-50 dark:from-primary-800 to-white dark:to-primary-700">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
                 <div>
-                  <label className="block text-sm font-semibold text-primary-900 mb-1">
+                  <label className="block text-sm font-semibold text-primary-900 dark:text-primary-100 mb-1">
                     Select Members to Include
                   </label>
-                  <p className="text-xs text-primary-600">Choose who should share this expense</p>
+                  <p className="text-xs text-primary-600 dark:text-primary-400">Choose who should share this expense</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={selectAllMembers}
-                    className="text-xs px-3 py-1.5 text-primary-700 bg-white hover:text-primary-900 hover:bg-primary-100 rounded-md transition-colors border border-primary-300 font-medium"
+                    className="text-xs px-3 py-1.5 text-primary-700 dark:text-primary-300 bg-white dark:bg-primary-700 hover:text-primary-900 dark:hover:text-primary-100 hover:bg-primary-100 dark:hover:bg-primary-600 rounded-md transition-colors border border-primary-300 dark:border-primary-600 font-medium"
                   >
                     Select All
                   </button>
@@ -317,7 +332,7 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
                       <button
                         type="button"
                         onClick={excludePaidBy}
-                        className="text-xs px-2 sm:px-3 py-1.5 text-primary-700 bg-white hover:text-primary-900 hover:bg-primary-100 rounded-md transition-colors border border-primary-300 font-medium"
+                        className="text-xs px-2 sm:px-3 py-1.5 text-primary-700 dark:text-primary-300 bg-white dark:bg-primary-700 hover:text-primary-900 dark:hover:text-primary-100 hover:bg-primary-100 dark:hover:bg-primary-600 rounded-md transition-colors border border-primary-300 dark:border-primary-600 font-medium"
                         title="Exclude the person who paid"
                       >
                         <span className="hidden sm:inline">Exclude Paid By</span>
@@ -326,7 +341,7 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
                       <button
                         type="button"
                         onClick={includeOnlyPaidBy}
-                        className="text-xs px-2 sm:px-3 py-1.5 text-primary-700 bg-white hover:text-primary-900 hover:bg-primary-100 rounded-md transition-colors border border-primary-300 font-medium"
+                        className="text-xs px-2 sm:px-3 py-1.5 text-primary-700 dark:text-primary-300 bg-white dark:bg-primary-700 hover:text-primary-900 dark:hover:text-primary-100 hover:bg-primary-100 dark:hover:bg-primary-600 rounded-md transition-colors border border-primary-300 dark:border-primary-600 font-medium"
                         title="Include only the person who paid"
                       >
                         <span className="hidden sm:inline">Only Paid By</span>
@@ -347,20 +362,20 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
                       onClick={() => toggleMember(member.id)}
                       className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all ${
                         isSelected
-                          ? 'bg-white border-2 border-primary-500 shadow-sm'
-                          : 'bg-white border-2 border-primary-200 hover:border-primary-300 hover:shadow-sm'
+                          ? 'bg-white dark:bg-primary-700 border-2 border-primary-500 dark:border-primary-400 shadow-sm'
+                          : 'bg-white dark:bg-primary-800 border-2 border-primary-200 dark:border-primary-600 hover:border-primary-300 dark:hover:border-primary-500 hover:shadow-sm'
                       }`}
                     >
                       <div className="flex items-center space-x-3 flex-1 min-w-0">
                         <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
                           isSelected
                             ? 'bg-primary-600 border-primary-600'
-                            : 'border-primary-300 bg-white'
+                            : 'border-primary-300 dark:border-primary-600 bg-white dark:bg-primary-700'
                         }`}>
                           {isSelected && <Check className="w-4 h-4 text-white" />}
                         </div>
                         <div className="flex items-center space-x-2 flex-1 min-w-0">
-                          <span className={`font-semibold text-sm sm:text-base truncate ${isSelected ? 'text-primary-900' : 'text-primary-700'}`}>
+                          <span className={`font-semibold text-sm sm:text-base truncate ${isSelected ? 'text-primary-900 dark:text-primary-100' : 'text-primary-700 dark:text-primary-300'}`}>
                             {member.name}
                           </span>
                           {isPaidBy && (
@@ -372,10 +387,10 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
                       </div>
                       {isSelected && equalSplitPreview && (
                         <div className="ml-3 flex-shrink-0 text-right">
-                          <div className="text-sm font-bold text-primary-900">
+                          <div className="text-sm font-bold text-primary-900 dark:text-primary-100">
                             {formatCurrency(equalSplitPreview)}
                           </div>
-                          <div className="text-xs text-primary-600">each</div>
+                          <div className="text-xs text-primary-600 dark:text-primary-400">each</div>
                         </div>
                       )}
                     </div>
@@ -384,35 +399,35 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
               </div>
 
               {equalSplitPreview && selectedMembers.size > 0 && (
-                <div className="mt-4 pt-4 border-t-2 border-primary-200 bg-gradient-to-r from-primary-100 to-white rounded-lg p-4">
+                <div className="mt-4 pt-4 border-t-2 border-primary-200 dark:border-primary-600 bg-gradient-to-r from-primary-100 dark:from-primary-800 to-white dark:to-primary-700 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <Users className="w-5 h-5 text-primary-600" />
+                      <Users className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                       <div>
-                        <div className="text-sm font-medium text-primary-700">Split Summary</div>
-                        <div className="text-xs text-primary-600">{selectedMembers.size} {selectedMembers.size === 1 ? 'person' : 'people'} included</div>
+                        <div className="text-sm font-medium text-primary-700 dark:text-primary-300">Split Summary</div>
+                        <div className="text-xs text-primary-600 dark:text-primary-400">{selectedMembers.size} {selectedMembers.size === 1 ? 'person' : 'people'} included</div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs text-primary-600 mb-1">Each person pays</div>
-                      <div className="text-2xl font-bold text-primary-900">
+                      <div className="text-xs text-primary-600 dark:text-primary-400 mb-1">Each person pays</div>
+                      <div className="text-2xl font-bold text-primary-900 dark:text-primary-100">
                         {formatCurrency(equalSplitPreview)}
                       </div>
                     </div>
                   </div>
-                  <div className="pt-3 border-t border-primary-200 flex items-center justify-between">
-                    <span className="text-sm text-primary-600 font-medium">Total Bill Amount:</span>
-                    <span className="text-lg font-bold text-primary-900">{formatCurrency(parseFloat(amount))}</span>
+                  <div className="pt-3 border-t border-primary-200 dark:border-primary-600 flex items-center justify-between">
+                    <span className="text-sm text-primary-600 dark:text-primary-400 font-medium">Total Bill Amount:</span>
+                    <span className="text-lg font-bold text-primary-900 dark:text-primary-100">{formatCurrency(parseFloat(amount))}</span>
                   </div>
                 </div>
               )}
 
               {selectedMembers.size === 0 && (
-                <div className="mt-4 p-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg flex items-start space-x-3">
-                  <span className="text-yellow-600 font-bold text-lg flex-shrink-0">⚠️</span>
+                <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900 border-2 border-yellow-300 dark:border-yellow-700 rounded-lg flex items-start space-x-3">
+                  <span className="text-yellow-600 dark:text-yellow-400 font-bold text-lg flex-shrink-0">⚠️</span>
                   <div>
-                    <div className="text-sm font-semibold text-yellow-900 mb-1">No members selected</div>
-                    <div className="text-xs text-yellow-800">Please select at least one member to split this bill</div>
+                    <div className="text-sm font-semibold text-yellow-900 dark:text-yellow-100 mb-1">No members selected</div>
+                    <div className="text-xs text-yellow-800 dark:text-yellow-200">Please select at least one member to split this bill</div>
                   </div>
                 </div>
               )}
@@ -420,12 +435,12 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
           )}
 
               {splitType === 'custom' && (
-            <div className="border-2 border-primary-200 rounded-xl p-4 sm:p-5 bg-gradient-to-br from-primary-50 to-white">
+            <div className="border-2 border-primary-200 dark:border-primary-600 rounded-xl p-4 sm:p-5 bg-gradient-to-br from-primary-50 dark:from-primary-800 to-white dark:to-primary-700">
               <div className="mb-4">
-                <label className="block text-sm font-semibold text-primary-900 mb-1">
+                <label className="block text-sm font-semibold text-primary-900 dark:text-primary-100 mb-1">
                   Custom Split Ratios
                 </label>
-                <p className="text-xs text-primary-600">Enter the share for each member (use 0 to exclude)</p>
+                <p className="text-xs text-primary-600 dark:text-primary-400">Enter the share for each member (use 0 to exclude)</p>
               </div>
               <div className="space-y-3 mb-4">
                 {members.map(member => {
@@ -437,11 +452,11 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
                   const isPaidBy = member.id === paidBy
                   
                   return (
-                    <div key={member.id} className="bg-white border border-primary-200 rounded-lg p-3 hover:border-primary-300 transition-colors">
+                    <div key={member.id} className="bg-white dark:bg-primary-800 border border-primary-200 dark:border-primary-600 rounded-lg p-3 hover:border-primary-300 dark:hover:border-primary-500 transition-colors">
                       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                         <div className="flex items-center space-x-2 flex-1 min-w-0">
-                          <User className="w-4 h-4 text-primary-600 flex-shrink-0" />
-                          <span className="text-sm font-semibold text-primary-900 truncate">{member.name}</span>
+                          <User className="w-4 h-4 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+                          <span className="text-sm font-semibold text-primary-900 dark:text-primary-100 truncate">{member.name}</span>
                           {isPaidBy && (
                             <span className="text-xs bg-primary-600 text-white px-2 py-0.5 rounded-full flex-shrink-0 font-medium">
                               Paid
@@ -465,10 +480,10 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
                           </div>
                           {share > 0 && memberShare > 0 && (
                             <div className="text-right flex-shrink-0 sm:w-28">
-                              <div className="text-sm font-bold text-primary-900">
+                              <div className="text-sm font-bold text-primary-900 dark:text-primary-100">
                                 {formatCurrency(memberShare)}
                               </div>
-                              <div className="text-xs text-primary-600">share</div>
+                              <div className="text-xs text-primary-600 dark:text-primary-400">share</div>
                             </div>
                           )}
                         </div>
@@ -479,23 +494,23 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
               </div>
               
               {parseFloat(amount) > 0 && (
-                <div className="mt-4 pt-4 border-t-2 border-primary-200 bg-gradient-to-r from-primary-100 to-white rounded-lg p-4">
+                <div className="mt-4 pt-4 border-t-2 border-primary-200 dark:border-primary-600 bg-gradient-to-r from-primary-100 dark:from-primary-800 to-white dark:to-primary-700 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-primary-700">Total Shares:</span>
-                    <span className="text-lg font-bold text-primary-900">
+                    <span className="text-sm font-medium text-primary-700 dark:text-primary-300">Total Shares:</span>
+                    <span className="text-lg font-bold text-primary-900 dark:text-primary-100">
                       {Object.values(customSplit).reduce((sum, s) => sum + parseFloat(s || 0), 0).toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-primary-200">
-                    <span className="text-sm font-medium text-primary-700">Total Bill Amount:</span>
-                    <span className="text-lg font-bold text-primary-900">{formatCurrency(parseFloat(amount))}</span>
+                  <div className="flex items-center justify-between pt-2 border-t border-primary-200 dark:border-primary-600">
+                    <span className="text-sm font-medium text-primary-700 dark:text-primary-300">Total Bill Amount:</span>
+                    <span className="text-lg font-bold text-primary-900 dark:text-primary-100">{formatCurrency(parseFloat(amount))}</span>
                   </div>
                 </div>
               )}
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-primary-200">
+          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-primary-200 dark:border-primary-600">
             <button
               type="button"
               onClick={onClose}

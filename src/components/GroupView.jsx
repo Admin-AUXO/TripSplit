@@ -209,14 +209,14 @@ export default function GroupView({ group, onUpdateGroup, onBack, onSave, onShow
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
           <button
             onClick={onBack}
-            className="text-primary-600 hover:text-primary-800 flex items-center space-x-2"
+            className="text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-200 flex items-center space-x-2"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Groups</span>
           </button>
           <div className="flex items-center gap-3">
             {lastSaved && (
-              <div className="text-xs text-primary-600 hidden sm:block">
+              <div className="text-xs text-primary-600 dark:text-primary-400 hidden sm:block">
                 Last saved: {formatLastSaved(lastSaved)}
               </div>
             )}

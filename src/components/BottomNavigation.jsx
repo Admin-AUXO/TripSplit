@@ -6,7 +6,7 @@ export default function BottomNavigation({ activeView, onNavigate }) {
   if (!isMobile()) return null
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-primary-800 border-t border-primary-200 dark:border-primary-700 z-50 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-primary-800 border-t border-primary-200 dark:border-primary-700 z-50 md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       <div className="flex justify-around items-center h-16">
         <button
           onClick={() => onNavigate('groups')}

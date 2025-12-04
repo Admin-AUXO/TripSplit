@@ -511,12 +511,12 @@ function App() {
         </div>
       </header>
 
-      <main className={`max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-8 pb-20 md:pb-8 transition-all ${
+      <main className={`max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-8 pb-20 md:pb-8 transition-all overflow-x-hidden ${
         sidebarOpen && !isMobile() ? 'lg:ml-64' : ''
-      }`}>
+      }`} style={{ paddingBottom: isMobile() ? 'calc(5rem + env(safe-area-inset-bottom, 0px))' : undefined }}>
         {isLoading && (
           <div className="text-center py-12">
-            <p className="text-primary-600">Loading shared data...</p>
+            <p className="text-primary-600 dark:text-primary-400">Loading shared data...</p>
           </div>
         )}
         {!isLoading && (
@@ -619,7 +619,7 @@ function App() {
           />
         ) : (
           <div className="text-center py-12">
-            <p className="text-primary-600 mb-4">No group selected</p>
+            <p className="text-primary-600 dark:text-primary-400 mb-4">No group selected</p>
             <button onClick={() => setActiveView('groups')} className="btn-primary">
               Go to Groups
             </button>
@@ -660,8 +660,8 @@ function App() {
       />
 
       {showHelp && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="card max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto" onClick={(e) => e.target === e.currentTarget && setShowHelp(false)}>
+          <div className="card max-w-2xl w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-primary-900 dark:text-primary-100">Help & Shortcuts</h2>
               <button

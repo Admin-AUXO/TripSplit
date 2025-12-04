@@ -17,7 +17,7 @@ export default function PullToRefresh({ onRefresh, children }) {
     <div {...pullHandlers} className="relative">
       {isPulling && (
         <div 
-          className="fixed top-0 left-0 right-0 bg-primary-600 text-white flex items-center justify-center py-2 z-50 transition-opacity"
+          className="fixed top-0 left-0 right-0 bg-primary-600 dark:bg-primary-500 text-white flex items-center justify-center py-2 z-[45] transition-opacity"
           style={{ 
             height: `${Math.min(pullDistance, 80)}px`,
             opacity: Math.min(pullDistance / 80, 1)

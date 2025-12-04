@@ -1,8 +1,22 @@
 import { X } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
+// Helper to lock/unlock body scroll
+const useBodyScrollLock = (isLocked) => {
+  useEffect(() => {
+    if (isLocked) {
+      const originalStyle = window.getComputedStyle(document.body).overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = originalStyle
+      }
+    }
+  }, [isLocked])
+}
 
 export default function NewMemberModal({ onClose, onAdd, existingMembers, editingMember }) {
   const [name, setName] = useState(editingMember?.name || '')
+  useBodyScrollLock(true)
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -18,15 +32,15 @@ export default function NewMemberModal({ onClose, onAdd, existingMembers, editin
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-start sm:items-center z-50 p-2 sm:p-4 overflow-y-auto">
-      <div className="card max-w-md w-full my-4 sm:my-8 max-h-[calc(100vh-2rem)]">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-start sm:items-center z-50 p-2 sm:p-4 overflow-y-auto" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="card max-w-md w-full my-4 sm:my-8 max-h-[calc(100vh-2rem)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl sm:text-2xl font-bold text-primary-900">
+          <h2 className="text-xl sm:text-2xl font-bold text-primary-900 dark:text-primary-100">
             {editingMember ? 'Edit Member' : 'Add Member'}
           </h2>
           <button
             onClick={onClose}
-            className="text-primary-600 hover:text-primary-800 p-1 flex-shrink-0"
+            className="text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-200 p-1 flex-shrink-0"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -35,7 +49,7 @@ export default function NewMemberModal({ onClose, onAdd, existingMembers, editin
         
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-primary-900 mb-2">
+            <label className="block text-sm font-medium text-primary-900 dark:text-primary-100 mb-2">
               Member Name
             </label>
             <input

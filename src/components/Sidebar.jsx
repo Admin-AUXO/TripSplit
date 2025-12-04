@@ -15,7 +15,7 @@ export default function Sidebar({ groups, selectedGroupId, onSelectGroup, isOpen
       />
       
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white dark:bg-primary-800 border-r border-primary-200 dark:border-primary-700 z-50 overflow-y-auto">
+      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white dark:bg-primary-800 border-r border-primary-200 dark:border-primary-700 z-40 overflow-y-auto">
         <div className="p-4 border-b border-primary-200 dark:border-primary-700 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Home className="w-5 h-5 text-primary-600 dark:text-primary-400" />

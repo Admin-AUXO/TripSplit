@@ -28,28 +28,28 @@ export default function FilterDropdown({ options = [], onFilter, label = 'Filter
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-4 py-2 border border-primary-300 rounded-lg hover:bg-primary-50 transition-colors"
+        className="flex items-center space-x-2 px-4 py-2 border border-primary-300 dark:border-primary-600 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-700 transition-colors bg-white dark:bg-primary-800 text-primary-900 dark:text-primary-100"
       >
         <Filter className="w-4 h-4" />
         <span>{label}</span>
         {selectedFilters.length > 0 && (
-          <span className="bg-primary-600 text-white text-xs px-2 py-0.5 rounded-full">
+          <span className="bg-primary-600 dark:bg-primary-500 text-white text-xs px-2 py-0.5 rounded-full">
             {selectedFilters.length}
           </span>
         )}
       </button>
       {isOpen && (
-        <div className="absolute top-full mt-2 bg-white border border-primary-200 rounded-lg shadow-lg z-50 min-w-[200px] py-2">
+        <div className="absolute top-full mt-2 bg-white dark:bg-primary-800 border border-primary-200 dark:border-primary-600 rounded-lg shadow-lg z-[60] min-w-[200px] max-h-[300px] overflow-y-auto py-2">
           {options.map((option) => (
             <label
               key={option.value}
-              className="flex items-center space-x-2 px-4 py-2 hover:bg-primary-50 cursor-pointer"
+              className="flex items-center space-x-2 px-4 py-2 hover:bg-primary-50 dark:hover:bg-primary-700 cursor-pointer text-primary-900 dark:text-primary-100"
             >
               <input
                 type="checkbox"
                 checked={selectedFilters.includes(option.value)}
                 onChange={() => toggleFilter(option.value)}
-                className="rounded border-primary-300 text-primary-600 focus:ring-primary-500"
+                className="rounded border-primary-300 dark:border-primary-600 text-primary-600 dark:text-primary-400 focus:ring-primary-500 bg-white dark:bg-primary-700"
               />
               <span>{option.label}</span>
             </label>

@@ -52,7 +52,7 @@ export default function Tooltip({ text, children, position = 'top' }) {
       {isVisible && (
         <div
           ref={tooltipRef}
-          className="fixed bg-primary-900 text-white text-xs px-2 py-1 rounded shadow-lg z-50 pointer-events-none"
+          className="fixed bg-primary-900 dark:bg-primary-700 text-white text-xs px-2 py-1 rounded shadow-lg z-[60] pointer-events-none"
           style={{ whiteSpace: 'nowrap' }}
         >
           {text}

@@ -3,6 +3,19 @@ import { useState, useEffect } from 'react'
 import { getStorageId, setStorageId, createNewBin } from '../utils/simpleStorage'
 import { useDarkMode } from '../hooks/useDarkMode'
 
+// Helper to lock/unlock body scroll
+const useBodyScrollLock = (isLocked) => {
+  useEffect(() => {
+    if (isLocked) {
+      const originalStyle = window.getComputedStyle(document.body).overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = originalStyle
+      }
+    }
+  }, [isLocked])
+}
+
 export default function SettingsModal({ onClose, onStorageIdChange }) {
   const [isDark, toggleDarkMode] = useDarkMode()
   const [storageId, setStorageIdValue] = useState('')
@@ -10,6 +23,7 @@ export default function SettingsModal({ onClose, onStorageIdChange }) {
   const [isCreatingBin, setIsCreatingBin] = useState(false)
   const [copied, setCopied] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
+  useBodyScrollLock(true)
 
   useEffect(() => {
     setStorageIdValue(getStorageId())
@@ -68,13 +82,13 @@ export default function SettingsModal({ onClose, onStorageIdChange }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-start sm:items-center z-50 p-2 sm:p-4 overflow-y-auto">
-      <div className="card max-w-md w-full my-4 sm:my-8 max-h-[calc(100vh-2rem)]">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-start sm:items-center z-50 p-2 sm:p-4 overflow-y-auto" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="card max-w-md w-full my-4 sm:my-8 max-h-[calc(100vh-2rem)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl sm:text-2xl font-bold text-primary-900">Settings</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-primary-900 dark:text-primary-100">Settings</h2>
           <button
             onClick={onClose}
-            className="text-primary-600 hover:text-primary-800 p-1 flex-shrink-0"
+            className="text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-200 p-1 flex-shrink-0"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -83,10 +97,10 @@ export default function SettingsModal({ onClose, onStorageIdChange }) {
         
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-primary-900 mb-2">
+            <label className="block text-sm font-medium text-primary-900 dark:text-primary-100 mb-2">
               Bin ID (jsonbin.io)
             </label>
-            <p className="text-xs text-primary-600 mb-2">
+            <p className="text-xs text-primary-600 dark:text-primary-400 mb-2">
               Users with the same Bin ID will see the same groups. Share this ID with others to collaborate.
             </p>
             <div className="flex gap-2">
@@ -115,7 +129,7 @@ export default function SettingsModal({ onClose, onStorageIdChange }) {
               <button
                 type="button"
                 onClick={handleReset}
-                className="text-xs text-primary-600 hover:text-primary-800 underline"
+                className="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-200 underline"
               >
                 Reset to default
               </button>
@@ -142,8 +156,8 @@ export default function SettingsModal({ onClose, onStorageIdChange }) {
             {message.text && (
               <div className={`mt-2 p-2 rounded text-xs ${
                 message.type === 'success' 
-                  ? 'bg-green-50 text-green-700 border border-green-200' 
-                  : 'bg-red-50 text-red-700 border border-red-200'
+                  ? 'bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700' 
+                  : 'bg-red-50 dark:bg-red-900 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700'
               }`}>
                 {message.text}
               </div>

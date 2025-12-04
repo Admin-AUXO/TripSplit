@@ -69,7 +69,7 @@ export default function BillList({ bills, members, onDelete, onEdit, onReorder, 
                   type="checkbox"
                   checked={isSelected}
                   onChange={() => {}}
-                  className="w-5 h-5 rounded border-primary-300 text-primary-600"
+                  className="w-5 h-5 rounded border-primary-300 dark:border-primary-600 text-primary-600 dark:text-primary-400"
                   readOnly
                 />
                 {renderBillContent(bill)}
@@ -78,25 +78,25 @@ export default function BillList({ bills, members, onDelete, onEdit, onReorder, 
           )}
         />
         {selectedIds.length > 0 && (
-          <div className="fixed bottom-4 right-4 bg-primary-600 text-white p-4 rounded-lg shadow-lg z-50 flex items-center space-x-4">
+          <div className="fixed bottom-4 right-4 bg-primary-600 dark:bg-primary-500 text-white p-4 rounded-lg shadow-lg z-[60] flex items-center space-x-4" style={{ bottom: 'calc(4rem + 1rem + env(safe-area-inset-bottom, 0px))' }}>
             <span>{selectedIds.length} selected</span>
             {selectedIds.length === 1 && (
               <button
                 onClick={handleBulkEdit}
-                className="bg-white text-primary-600 px-3 py-1 rounded hover:bg-primary-50"
+                className="bg-white dark:bg-primary-700 text-primary-600 dark:text-primary-300 px-3 py-1 rounded hover:bg-primary-50 dark:hover:bg-primary-600"
               >
                 Edit
               </button>
             )}
             <button
               onClick={handleBulkDelete}
-              className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded"
+              className="bg-red-600 dark:bg-red-500 hover:bg-red-700 dark:hover:bg-red-600 px-3 py-1 rounded"
             >
               Delete
             </button>
             <button
               onClick={() => setSelectedIds([])}
-              className="text-white hover:text-primary-200"
+              className="text-white hover:text-primary-200 dark:hover:text-primary-300"
             >
               ✕
             </button>

@@ -50,11 +50,11 @@ export default function ContextMenu({ items = [], children, onRightClick }) {
       {isOpen && (
         <div
           ref={menuRef}
-          className="fixed bg-white border border-primary-200 rounded-lg shadow-xl z-50 py-1 min-w-[160px]"
+          className="fixed bg-white dark:bg-primary-800 border border-primary-200 dark:border-primary-600 rounded-lg shadow-xl z-[60] py-1 min-w-[160px] max-h-[300px] overflow-y-auto"
           style={{
-            left: `${position.x}px`,
-            top: `${position.y}px`,
-            transform: 'translate(-100%, 0)'
+            left: `${Math.min(position.x, window.innerWidth - 180)}px`,
+            top: `${Math.min(position.y, window.innerHeight - 100)}px`,
+            transform: position.x > window.innerWidth / 2 ? 'translate(-100%, 0)' : 'translate(0, 0)'
           }}
         >
           {defaultItems.map((item, index) => {
@@ -63,8 +63,8 @@ export default function ContextMenu({ items = [], children, onRightClick }) {
               <button
                 key={index}
                 onClick={() => handleItemClick(item)}
-                className={`w-full flex items-center space-x-2 px-4 py-2 text-left hover:bg-primary-50 transition-colors ${
-                  item.destructive ? 'text-red-600' : 'text-primary-900'
+                className={`w-full flex items-center space-x-2 px-4 py-2 text-left hover:bg-primary-50 dark:hover:bg-primary-700 transition-colors ${
+                  item.destructive ? 'text-red-600 dark:text-red-400' : 'text-primary-900 dark:text-primary-100'
                 }`}
               >
                 <Icon className="w-4 h-4" />
