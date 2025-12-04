@@ -1,19 +1,40 @@
-// Simple shared storage using jsonstorage.net
-// This uses a free public JSON hosting service with API key authentication
+// Simple shared storage using jsonbin.io
+// This uses jsonbin.io API for storing and retrieving JSON data
+// Reference: https://jsonbin.io/api-reference
 
-const JSON_STORAGE_URL = 'https://jsonstorage.net/api/items/'
+const JSONBIN_API_BASE = 'https://api.jsonbin.io/v3/b'
 
-// API Keys for jsonstorage.net
-// These are safe to expose in client-side code for public bins
-const MASTER_KEY = import.meta.env.VITE_JSONSTORAGE_MASTER_KEY || '$2a$10$g7iT2hmHMBIoiIPfngh7bumI343YP0ZxWah62esACMww2j4/4l7.u'
-const ACCESS_KEY = import.meta.env.VITE_JSONSTORAGE_ACCESS_KEY || '$2a$10$htXfOoDZFL37PUTmkMjoJOiw9qjqr5g5omyjWfNaBANY1aYmLSMIO'
+// API Keys for jsonbin.io
+// Get your API keys from https://jsonbin.io/api-keys
+// For public bins, these can be exposed in client-side code
+const MASTER_KEY = import.meta.env.VITE_JSONBIN_MASTER_KEY || '$2a$10$g7iT2hmHMBIoiIPfngh7bumI343YP0ZxWah62esACMww2j4/4l7.u'
+const ACCESS_KEY = import.meta.env.VITE_JSONBIN_ACCESS_KEY || '$2a$10$htXfOoDZFL37PUTmkMjoJOiw9qjqr5g5omyjWfNaBANY1aYmLSMIO'
 
-// Use a fixed storage ID so ALL users share the same data
-// This ensures groups created by anyone are visible to everyone
-const getStorageId = () => {
-  // Fixed ID - same for all users so everyone sees the same groups
-  // This is the shared storage that everyone accesses
-  return 'tripsplit-shared-public'
+// Storage ID key in localStorage
+const STORAGE_ID_KEY = 'tripsplit_storage_id'
+const DEFAULT_STORAGE_ID = 'tripsplit-shared-public'
+
+// Get storage ID from localStorage or return default
+export const getStorageId = () => {
+  try {
+    const storedId = localStorage.getItem(STORAGE_ID_KEY)
+    return storedId || DEFAULT_STORAGE_ID
+  } catch {
+    return DEFAULT_STORAGE_ID
+  }
+}
+
+// Set storage ID in localStorage
+export const setStorageId = (id) => {
+  try {
+    if (id && id.trim()) {
+      localStorage.setItem(STORAGE_ID_KEY, id.trim())
+    } else {
+      localStorage.removeItem(STORAGE_ID_KEY)
+    }
+  } catch (error) {
+    console.error('Error saving storage ID:', error)
+  }
 }
 
 // Fallback to LocalStorage
@@ -39,18 +60,41 @@ const saveToLocalStorage = (groups) => {
 // Load all groups
 export const loadGroups = async () => {
   try {
-    const storageId = getStorageId()
+    const binId = getStorageId()
+    
+    // If no API key is configured, fall back to localStorage
+    if (!MASTER_KEY && !ACCESS_KEY) {
+      console.warn(
+        '⚠️ No JSONBin.io API key configured.\n' +
+        '📝 To enable cloud sync:\n' +
+        '   1. Get API keys from https://jsonbin.io/api-keys\n' +
+        '   2. Create a .env file in the project root\n' +
+        '   3. Add: VITE_JSONBIN_MASTER_KEY=your_key_here\n' +
+        '   4. Restart the dev server\n' +
+        '💾 Currently using LocalStorage only (data won\'t sync across devices/browsers)'
+      )
+      return loadFromLocalStorage()
+    }
+    
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
     
     try {
-      const response = await fetch(`${JSON_STORAGE_URL}${storageId}`, {
+      // jsonbin.io read endpoint: GET /v3/b/{binId}/latest
+      const headers = {
+        'Content-Type': 'application/json'
+      }
+      
+      // Use Master Key if available, otherwise use Access Key
+      if (MASTER_KEY) {
+        headers['X-Master-Key'] = MASTER_KEY
+      } else if (ACCESS_KEY) {
+        headers['X-Access-Key'] = ACCESS_KEY
+      }
+      
+      const response = await fetch(`${JSONBIN_API_BASE}/${binId}/latest`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Master-Key': MASTER_KEY,
-          'X-Access-Key': ACCESS_KEY
-        },
+        headers,
         signal: controller.signal
       })
 
@@ -58,14 +102,26 @@ export const loadGroups = async () => {
 
       if (!response.ok) {
         if (response.status === 404) {
-          // Storage doesn't exist yet - return empty array (this is normal for first use)
+          // Bin doesn't exist yet - return empty array (this is normal for first use)
           return []
         }
-        throw new Error(`HTTP error! status: ${response.status}`)
+        
+        // Handle 400 "Invalid Bin Id" - treat as bin doesn't exist
+        if (response.status === 400) {
+          const errorData = await response.json().catch(() => ({ message: '' }))
+          if (errorData.message && errorData.message.includes('Invalid Bin Id')) {
+            console.warn('Bin ID does not exist. Using empty data. Create a new bin or update the Bin ID in Settings.')
+            return []
+          }
+        }
+        
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }))
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message || 'Unknown error'}`)
       }
 
       const data = await response.json()
-      const groups = data.groups || []
+      // jsonbin.io returns data in { record: {...} } format
+      const groups = data.record?.groups || []
       
       // Also update LocalStorage as backup (but don't use it as primary source)
       if (groups.length > 0) {
@@ -80,11 +136,11 @@ export const loadGroups = async () => {
   } catch (error) {
     // Check if it's a network error or timeout
     if (error.name === 'AbortError') {
-      console.error('Request timeout loading from JSON storage')
+      console.error('Request timeout loading from JSONBin.io')
     } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      console.error('Network error loading from JSON storage:', error.message)
+      console.error('Network error loading from JSONBin.io:', error.message)
     } else {
-      console.error('Error loading from JSON storage:', error.message)
+      console.error('Error loading from JSONBin.io:', error.message)
     }
     // Only use LocalStorage as last resort if we can't connect at all
     // But warn the user that data might be stale
@@ -101,63 +157,106 @@ export const saveGroups = async (groups) => {
   // Always save to LocalStorage as backup
   saveToLocalStorage(groups)
 
+  // If no API key is configured, only save to localStorage
+  if (!MASTER_KEY && !ACCESS_KEY) {
+    console.warn(
+      '⚠️ No JSONBin.io API key configured.\n' +
+      '💾 Data saved to LocalStorage only (won\'t sync across devices).\n' +
+      '📝 See console for setup instructions.'
+    )
+    return
+  }
+
   try {
-    const storageId = getStorageId()
+    const binId = getStorageId()
     const body = {
       groups,
       lastUpdated: new Date().toISOString()
     }
 
-    // Try PUT first (update existing)
-    let response = await fetch(`${JSON_STORAGE_URL}${storageId}`, {
+    const headers = {
+      'Content-Type': 'application/json'
+    }
+    
+    // Use Master Key if available, otherwise use Access Key
+    if (MASTER_KEY) {
+      headers['X-Master-Key'] = MASTER_KEY
+    } else if (ACCESS_KEY) {
+      headers['X-Access-Key'] = ACCESS_KEY
+    }
+
+    // Try PUT first (update existing bin)
+    // jsonbin.io update endpoint: PUT /v3/b/{binId}
+    let response = await fetch(`${JSONBIN_API_BASE}/${binId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Master-Key': MASTER_KEY,
-        'X-Access-Key': ACCESS_KEY
-      },
+      headers,
       body: JSON.stringify(body)
     })
 
-    // If item doesn't exist (404), create it
-    if (response.status === 404) {
-      response = await fetch(JSON_STORAGE_URL, {
+    // If bin doesn't exist (404) or invalid (400), create it
+    if (response.status === 404 || response.status === 400) {
+      // Check if it's an invalid bin ID error
+      if (response.status === 400) {
+        const errorData = await response.json().catch(() => ({ message: '' }))
+        if (!errorData.message || !errorData.message.includes('Invalid Bin Id')) {
+          // Not an invalid bin ID error, re-throw
+          throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message || 'Unknown error'}`)
+        }
+      }
+      // jsonbin.io create endpoint: POST /v3/b
+      // For public bins, set X-Bin-Private: false
+      const createHeaders = {
+        ...headers,
+        'X-Bin-Private': 'false' // Make it public so anyone with the bin ID can access
+      }
+      
+      // jsonbin.io generates the ID automatically during creation
+      // We'll create a new bin and the user will need to update their bin ID in settings
+      response = await fetch(JSONBIN_API_BASE, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Master-Key': MASTER_KEY,
-          'X-Access-Key': ACCESS_KEY
-        },
-        body: JSON.stringify({
-          id: storageId,
-          ...body
-        })
+        headers: createHeaders,
+        body: JSON.stringify(body)
       })
+
+      if (response.ok) {
+        const createData = await response.json()
+        const newBinId = createData.metadata?.id
+        if (newBinId) {
+          // Store the new bin ID so it can be used going forward
+          setStorageId(newBinId)
+          console.log('✅ Created new bin. Bin ID:', newBinId)
+          console.log('💡 This Bin ID has been saved. Share it with others to collaborate!')
+        }
+      } else {
+        // If creation failed, throw error
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }))
+        throw new Error(`Failed to create bin: ${errorData.message || 'Unknown error'}`)
+      }
     }
 
     if (!response.ok) {
-      const errorText = await response.text().catch(() => 'Unknown error')
-      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`)
+      const errorData = await response.json().catch(() => ({ message: 'Unknown error' }))
+      throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message || 'Unknown error'}`)
     }
 
     // Verify the save was successful by reading it back
-    const verifyResponse = await fetch(`${JSON_STORAGE_URL}${storageId}`, {
+    const verifyResponse = await fetch(`${JSONBIN_API_BASE}/${binId}/latest`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'X-Master-Key': MASTER_KEY,
-        'X-Access-Key': ACCESS_KEY
+        ...(MASTER_KEY ? { 'X-Master-Key': MASTER_KEY } : { 'X-Access-Key': ACCESS_KEY })
       }
     })
 
     if (verifyResponse.ok) {
       const savedData = await verifyResponse.json()
-      if (JSON.stringify(savedData.groups || []) !== JSON.stringify(groups)) {
+      const savedGroups = savedData.record?.groups || []
+      if (JSON.stringify(savedGroups) !== JSON.stringify(groups)) {
         console.warn('Data verification failed - saved data may differ')
       }
     }
   } catch (error) {
-    console.error('Error saving to JSON storage:', error.message)
+    console.error('Error saving to JSONBin.io:', error.message)
     throw error // Re-throw so caller knows save failed
   }
 }

@@ -32,11 +32,11 @@ The app is configured to deploy to GitHub Pages automatically via GitHub Actions
 
 ## Shared Data
 
-The app uses **jsonstorage.net** (completely free, no registration, no credit card required) to store shared data. Multiple friends can open the same GitHub Pages link and see/modify the same trip expenses in real-time. No setup required - it works out of the box!
+The app uses **jsonbin.io** to store shared data. Multiple friends can use the same Bin ID to see/modify the same trip expenses in real-time.
 
-**100% Free Forever** - All features are free. No subscriptions, no premium tiers, no payment processing. Everything works with free services.
+**Free Tier Available** - jsonbin.io offers a free tier with generous limits. No credit card required for basic usage.
 
-See [SETUP.md](./SETUP.md) for more details.
+See [SETUP.md](./SETUP.md) for setup instructions and API key configuration.
 
 ## How to Use
 

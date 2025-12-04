@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Users, Plus, Receipt, Calculator, ArrowLeft, BarChart3 } from 'lucide-react'
+import { Users, Plus, Receipt, Calculator, ArrowLeft, BarChart3, Save, CheckCircle } from 'lucide-react'
 import MemberList from './MemberList'
 import BillList from './BillList'
 import ExpenseTally from './ExpenseTally'
@@ -7,7 +7,9 @@ import ExpenseStats from './ExpenseStats'
 import NewMemberModal from './NewMemberModal'
 import NewBillModal from './NewBillModal'
 
-export default function GroupView({ group, onUpdateGroup, onBack }) {
+export default function GroupView({ group, onUpdateGroup, onBack, onSave }) {
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveStatus, setSaveStatus] = useState(null) // 'success', 'error', or null
   const [activeTab, setActiveTab] = useState('bills') // 'members', 'bills', 'tally'
   const [showNewMemberModal, setShowNewMemberModal] = useState(false)
   const [showNewBillModal, setShowNewBillModal] = useState(false)
@@ -74,6 +76,31 @@ export default function GroupView({ group, onUpdateGroup, onBack }) {
     })
   }
 
+  const handleSave = async () => {
+    if (!onSave) return
+    
+    setIsSaving(true)
+    setSaveStatus(null)
+    
+    try {
+      const success = await onSave()
+      setSaveStatus(success ? 'success' : 'error')
+      
+      // Clear status message after 2 seconds
+      setTimeout(() => {
+        setSaveStatus(null)
+      }, 2000)
+    } catch (error) {
+      console.error('Error saving:', error)
+      setSaveStatus('error')
+      setTimeout(() => {
+        setSaveStatus(null)
+      }, 2000)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   const tabs = [
     { id: 'members', label: 'Members', icon: Users },
     { id: 'bills', label: 'Bills', icon: Receipt },
@@ -84,13 +111,46 @@ export default function GroupView({ group, onUpdateGroup, onBack }) {
   return (
     <div>
       <div className="mb-6">
-        <button
-          onClick={onBack}
-          className="text-primary-600 hover:text-primary-800 mb-4 flex items-center space-x-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Groups</span>
-        </button>
+        <div className="flex items-center justify-between mb-4">
+          <button
+            onClick={onBack}
+            className="text-primary-600 hover:text-primary-800 flex items-center space-x-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Groups</span>
+          </button>
+          {onSave && (
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className={`flex items-center justify-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                saveStatus === 'success'
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : saveStatus === 'error'
+                  ? 'bg-red-600 text-white hover:bg-red-700'
+                  : 'btn-primary'
+              }`}
+              title="Save all changes to shared storage"
+            >
+              {isSaving ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Saving...</span>
+                </>
+              ) : saveStatus === 'success' ? (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Saved!</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>Save Changes</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
         <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 break-words">{group.name}</h2>
       </div>
 
@@ -180,6 +240,8 @@ export default function GroupView({ group, onUpdateGroup, onBack }) {
         {activeTab === 'tally' && (
           <ExpenseTally
             group={group}
+            onUpdateGroup={onUpdateGroup}
+            onSave={onSave}
           />
         )}
       </div>

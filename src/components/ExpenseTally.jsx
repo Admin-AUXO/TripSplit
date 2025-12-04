@@ -1,11 +1,35 @@
-import { Calculator, ArrowRight, Users, CheckCircle2, Download, Printer, Clock, CheckCircle } from 'lucide-react'
+import { Calculator, ArrowRight, Users, CheckCircle2, Download, Printer, Clock, CheckCircle, Save } from 'lucide-react'
 import { calculateBalances, calculateSettlements } from '../utils/calculations'
 import { formatCurrency } from '../utils/currency'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 
-export default function ExpenseTally({ group }) {
-  const [paidSettlements, setPaidSettlements] = useState(new Set())
+export default function ExpenseTally({ group, onUpdateGroup, onSave }) {
+  // Initialize paidSettlements from group data or empty Set
+  const [paidSettlements, setPaidSettlements] = useState(() => {
+    if (group.paidSettlements && Array.isArray(group.paidSettlements)) {
+      return new Set(group.paidSettlements)
+    }
+    return new Set()
+  })
   const [activeTab, setActiveTab] = useState('pending')
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+
+  // Update local state when group data changes (from external updates)
+  // Only sync if the data actually changed to avoid unnecessary updates
+  useEffect(() => {
+    const groupPaidSettlements = group.paidSettlements && Array.isArray(group.paidSettlements) 
+      ? new Set(group.paidSettlements) 
+      : new Set()
+    
+    const currentArray = Array.from(paidSettlements).sort()
+    const groupArray = Array.from(groupPaidSettlements).sort()
+    
+    if (JSON.stringify(currentArray) !== JSON.stringify(groupArray)) {
+      setPaidSettlements(groupPaidSettlements)
+      setHasUnsavedChanges(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [group.paidSettlements])
   
   // Calculate balances considering paid settlements
   const balances = useMemo(() => {
@@ -40,6 +64,21 @@ export default function ExpenseTally({ group }) {
       newPaid.add(index)
     }
     setPaidSettlements(newPaid)
+    setHasUnsavedChanges(true)
+    
+    // Update group data immediately
+    if (onUpdateGroup) {
+      onUpdateGroup({
+        paidSettlements: Array.from(newPaid)
+      })
+    }
+  }
+
+  const handleSave = async () => {
+    if (onSave) {
+      await onSave()
+      setHasUnsavedChanges(false)
+    }
   }
 
   const exportSettlements = () => {
@@ -230,6 +269,21 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
               </p>
             </div>
             <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+              {onSave && (
+                <button
+                  onClick={handleSave}
+                  className={`flex items-center justify-center space-x-2 text-xs sm:text-sm py-2 px-3 flex-1 sm:flex-initial ${
+                    hasUnsavedChanges
+                      ? 'btn-primary'
+                      : 'btn-secondary'
+                  }`}
+                  title="Save settlement changes"
+                  disabled={!hasUnsavedChanges}
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{hasUnsavedChanges ? 'Save Changes' : 'Saved'}</span>
+                </button>
+              )}
               <button
                 onClick={exportSettlements}
                 className="btn-secondary flex items-center justify-center space-x-2 text-xs sm:text-sm py-2 px-3 flex-1 sm:flex-initial"

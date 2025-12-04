@@ -22,9 +22,9 @@ TripSplit is **100% free** with no hidden costs, subscriptions, or premium featu
 - Member-specific expense views
 
 ✅ **All Storage**
-- Free cloud storage via jsonstorage.net
+- Free cloud storage via jsonbin.io (free tier)
 - LocalStorage backup
-- No storage limits
+- Generous free tier limits
 
 ✅ **All Hosting**
 - Free GitHub Pages hosting
@@ -33,7 +33,7 @@ TripSplit is **100% free** with no hidden costs, subscriptions, or premium featu
 
 ## What We Use (All Free)
 
-1. **jsonstorage.net** - Free JSON storage (no registration needed)
+1. **jsonbin.io** - Free JSON storage (free tier available)
 2. **GitHub Pages** - Free static hosting
 3. **LocalStorage** - Browser storage (built-in, free)
 

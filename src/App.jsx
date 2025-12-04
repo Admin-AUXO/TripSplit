@@ -1,28 +1,43 @@
 import { useState, useEffect, useRef } from 'react'
-import { Users, Plus, Receipt, Calculator, Home, Wifi, WifiOff } from 'lucide-react'
+import { Users, Plus, Receipt, Calculator, Home, Wifi, WifiOff, Settings } from 'lucide-react'
 import { saveData, loadData, subscribeToGroups } from './utils/simpleStorage'
 import GroupList from './components/GroupList'
 import GroupView from './components/GroupView'
 import NewGroupModal from './components/NewGroupModal'
+import SettingsModal from './components/SettingsModal'
 
 function App() {
   const [groups, setGroups] = useState([])
   const [selectedGroupId, setSelectedGroupId] = useState(null)
   const [showNewGroupModal, setShowNewGroupModal] = useState(false)
+  const [showSettingsModal, setShowSettingsModal] = useState(false)
   const [activeView, setActiveView] = useState('groups') // 'groups' or 'group'
   const [isConnected, setIsConnected] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
   const unsubscribeRef = useRef(null)
   const isUpdatingRef = useRef(false)
 
-  // Initialize and subscribe to real-time updates
-  useEffect(() => {
+  // Function to initialize data loading and subscription
+  const initializeData = () => {
+    // Unsubscribe from previous subscription if exists
+    if (unsubscribeRef.current) {
+      unsubscribeRef.current()
+      unsubscribeRef.current = null
+    }
+
+    setIsLoading(true)
+    
     // Load initial data
     loadData().then(data => {
-      setGroups(data.groups || [])
-      if (data.groups && data.groups.length > 0 && !selectedGroupId) {
-        setSelectedGroupId(data.groups[0].id)
-      }
+      const loadedGroups = data.groups || []
+      setGroups(loadedGroups)
+      // Set first group as selected if we have groups and no selection
+      setSelectedGroupId(prevId => {
+        if (loadedGroups.length > 0 && !prevId) {
+          return loadedGroups[0].id
+        }
+        return prevId
+      })
       setIsConnected(true) // Successfully loaded from shared storage
       setIsLoading(false)
     }).catch(error => {
@@ -38,6 +53,11 @@ function App() {
         setIsConnected(true) // Successfully received updates
       }
     })
+  }
+
+  // Initialize and subscribe to real-time updates
+  useEffect(() => {
+    initializeData()
 
     return () => {
       if (unsubscribeRef.current) {
@@ -45,6 +65,16 @@ function App() {
       }
     }
   }, [])
+
+  // Handle storage ID change - reload data with new storage ID
+  const handleStorageIdChange = async (newStorageId) => {
+    // Clear current groups
+    setGroups([])
+    setSelectedGroupId(null)
+    
+    // Reinitialize with new storage ID
+    initializeData()
+  }
 
   // Save groups when they change (but not from real-time updates)
   useEffect(() => {
@@ -70,6 +100,7 @@ function App() {
       name,
       members: [],
       bills: [],
+      paidSettlements: [],
       createdAt: new Date().toISOString()
     }
     const updatedGroups = [...groups, newGroup]
@@ -111,6 +142,24 @@ function App() {
     ))
   }
 
+  // Explicit save function for manual saving
+  const saveGroupData = async () => {
+    if (groups.length === 0) return
+    
+    isUpdatingRef.current = true
+    try {
+      await saveData({ groups })
+      setIsConnected(true)
+      return true
+    } catch (error) {
+      console.error('Error saving data:', error)
+      setIsConnected(false)
+      return false
+    } finally {
+      isUpdatingRef.current = false
+    }
+  }
+
   const selectedGroup = groups.find(g => g.id === selectedGroupId)
 
   return (
@@ -137,16 +186,26 @@ function App() {
                 )}
               </div>
             </div>
-            {activeView === 'group' && selectedGroup && (
+            <div className="flex items-center space-x-2 flex-shrink-0">
               <button
-                onClick={() => setActiveView('groups')}
-                className="btn-secondary flex items-center justify-center space-x-2 flex-shrink-0"
+                onClick={() => setShowSettingsModal(true)}
+                className="btn-secondary flex items-center justify-center space-x-2"
+                title="Settings"
               >
-                <Home className="w-4 h-4" />
-                <span className="hidden sm:inline">All Groups</span>
-                <span className="sm:hidden">Groups</span>
+                <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">Settings</span>
               </button>
-            )}
+              {activeView === 'group' && selectedGroup && (
+                <button
+                  onClick={() => setActiveView('groups')}
+                  className="btn-secondary flex items-center justify-center space-x-2"
+                >
+                  <Home className="w-4 h-4" />
+                  <span className="hidden sm:inline">All Groups</span>
+                  <span className="sm:hidden">Groups</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -175,6 +234,7 @@ function App() {
             group={selectedGroup}
             onUpdateGroup={(updates) => updateGroup(selectedGroupId, updates)}
             onBack={() => setActiveView('groups')}
+            onSave={saveGroupData}
           />
         ) : (
           <div className="text-center py-12">
@@ -192,6 +252,13 @@ function App() {
         <NewGroupModal
           onClose={() => setShowNewGroupModal(false)}
           onCreate={createGroup}
+        />
+      )}
+
+      {showSettingsModal && (
+        <SettingsModal
+          onClose={() => setShowSettingsModal(false)}
+          onStorageIdChange={handleStorageIdChange}
         />
       )}
     </div>
