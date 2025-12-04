@@ -1,4 +1,5 @@
 import { Plus, Trash2, Users, Calendar, Receipt } from 'lucide-react'
+import EmptyState from './EmptyState'
 
 export default function GroupList({ groups, selectedGroupId, onSelectGroup, onCreateGroup, onDeleteGroup }) {
   return (
@@ -12,14 +13,23 @@ export default function GroupList({ groups, selectedGroupId, onSelectGroup, onCr
       </div>
 
       {groups.length === 0 ? (
-        <div className="card text-center py-12">
-          <Users className="w-16 h-16 text-primary-300 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-primary-900 mb-2">No groups yet</h3>
-          <p className="text-primary-600 mb-6">Create your first trip group to start splitting bills!</p>
-          <button onClick={onCreateGroup} className="btn-primary">
-            Create Your First Group
-          </button>
-        </div>
+        <EmptyState
+          icon={Users}
+          title="No groups yet"
+          description="Create your first trip group to start splitting bills and expenses with your friends!"
+          action={
+            <button onClick={onCreateGroup} className="btn-primary">
+              Create Your First Group
+            </button>
+          }
+          suggestions={[
+            'Add members to your group',
+            'Create bills for shared expenses',
+            'Track who paid for what',
+            'Automatically calculate splits',
+            'View statistics and settle up'
+          ]}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {groups.map(group => (

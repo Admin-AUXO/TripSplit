@@ -4,7 +4,6 @@ import { formatCurrency } from '../utils/currency'
 import { useState, useMemo, useEffect } from 'react'
 
 export default function ExpenseTally({ group, onUpdateGroup, onSave }) {
-  // Initialize paidSettlements from group data or empty Set
   const [paidSettlements, setPaidSettlements] = useState(() => {
     if (group.paidSettlements && Array.isArray(group.paidSettlements)) {
       return new Set(group.paidSettlements)
@@ -14,8 +13,6 @@ export default function ExpenseTally({ group, onUpdateGroup, onSave }) {
   const [activeTab, setActiveTab] = useState('pending')
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
-  // Update local state when group data changes (from external updates)
-  // Only sync if the data actually changed to avoid unnecessary updates
   useEffect(() => {
     const groupPaidSettlements = group.paidSettlements && Array.isArray(group.paidSettlements) 
       ? new Set(group.paidSettlements) 
@@ -31,17 +28,13 @@ export default function ExpenseTally({ group, onUpdateGroup, onSave }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [group.paidSettlements])
   
-  // Calculate balances considering paid settlements
   const balances = useMemo(() => {
     const baseBalances = calculateBalances(group)
     const settlements = calculateSettlements(baseBalances)
-    
-    // Adjust balances based on paid settlements
     const adjustedBalances = { ...baseBalances }
     
     settlements.forEach((settlement, index) => {
       if (paidSettlements.has(index)) {
-        // Settlement is paid - adjust balances
         adjustedBalances[settlement.from] = (adjustedBalances[settlement.from] || 0) + settlement.amount
         adjustedBalances[settlement.to] = (adjustedBalances[settlement.to] || 0) - settlement.amount
       }
@@ -66,7 +59,6 @@ export default function ExpenseTally({ group, onUpdateGroup, onSave }) {
     setPaidSettlements(newPaid)
     setHasUnsavedChanges(true)
     
-    // Update group data immediately
     if (onUpdateGroup) {
       onUpdateGroup({
         paidSettlements: Array.from(newPaid)
@@ -81,7 +73,6 @@ export default function ExpenseTally({ group, onUpdateGroup, onSave }) {
         setHasUnsavedChanges(false)
       } catch (error) {
         console.error('Error saving:', error)
-        // Keep hasUnsavedChanges true on error so user can retry
       }
     }
   }
@@ -209,7 +200,6 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
 
   return (
     <div className="space-y-6">
-      {/* Summary Card */}
       <div className="card bg-gradient-to-r from-primary-500 to-primary-600 text-white">
         <div className="flex items-center justify-between">
           <div>
@@ -222,7 +212,6 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
         </div>
       </div>
 
-      {/* Current Balances */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {creditors.length > 0 && (
           <div className="card">
@@ -263,7 +252,6 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
         )}
       </div>
 
-      {/* Settlement Suggestions */}
       {settlements.length > 0 && (
         <div className="card">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4">
@@ -308,7 +296,6 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
             </div>
           </div>
 
-          {/* Tabs */}
           <div className="border-b border-primary-200 mb-4">
             <div className="flex space-x-1">
               <button
@@ -336,7 +323,6 @@ Total to Settle: ${formatCurrency(settlements.reduce((sum, s) => sum + s.amount,
             </div>
           </div>
 
-          {/* Settlement List */}
           <div className="space-y-3">
             {settlements
               .filter((_, index) => {

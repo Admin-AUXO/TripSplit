@@ -25,7 +25,6 @@ export default function ExpenseStats({ group }) {
   const topSpender = Object.entries(stats.byMember)
     .sort((a, b) => b[1] - a[1])[0]
 
-  // Calculate additional stats
   const largestBill = group.bills.reduce((max, bill) => 
     bill.amount > max.amount ? bill : max, group.bills[0])
   const smallestBill = group.bills.reduce((min, bill) => 
@@ -46,7 +45,6 @@ export default function ExpenseStats({ group }) {
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="card bg-gradient-to-br from-blue-500 to-blue-600 text-white">
           <div className="flex items-center justify-between">
@@ -79,7 +77,6 @@ export default function ExpenseStats({ group }) {
         </div>
       </div>
 
-      {/* Category Breakdown */}
       {Object.keys(stats.byCategory).length > 0 && (
         <div className="card">
           <h3 className="text-lg font-semibold text-primary-900 mb-4 flex items-center space-x-2">
@@ -112,7 +109,6 @@ export default function ExpenseStats({ group }) {
         </div>
       )}
 
-      {/* Top Spenders */}
       {Object.keys(stats.byMember).length > 0 && (
         <div className="card">
           <h3 className="text-lg font-semibold text-primary-900 mb-4 flex items-center space-x-2">
@@ -143,7 +139,6 @@ export default function ExpenseStats({ group }) {
         </div>
       )}
 
-      {/* Additional Insights */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="card">
           <h3 className="text-lg font-semibold text-primary-900 mb-4 flex items-center space-x-2">

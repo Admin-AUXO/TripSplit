@@ -8,7 +8,6 @@ export default function NewMemberModal({ onClose, onAdd, existingMembers, editin
     e.preventDefault()
     const trimmedName = name.trim()
     if (trimmedName) {
-      // Check for duplicate names
       if (existingMembers.some(m => m.name.toLowerCase() === trimmedName.toLowerCase())) {
         alert('A member with this name already exists!')
         return

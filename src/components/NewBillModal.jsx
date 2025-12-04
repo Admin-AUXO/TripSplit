@@ -18,16 +18,14 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
   const [amount, setAmount] = useState(editingBill?.amount?.toString() || '')
   const [category, setCategory] = useState(editingBill?.category || CATEGORIES[0])
   const [paidBy, setPaidBy] = useState(editingBill?.paidBy || members[0]?.id || '')
-  const [splitType, setSplitType] = useState(editingBill ? 'custom' : 'equal') // 'equal' or 'custom'
+  const [splitType, setSplitType] = useState(editingBill ? 'custom' : 'equal')
   const [customSplit, setCustomSplit] = useState(editingBill?.splitRatio || {})
   const [selectedMembers, setSelectedMembers] = useState(() => {
     if (editingBill) {
-      // For editing, select members who have non-zero split ratio
       return new Set(Object.entries(editingBill.splitRatio)
         .filter(([_, share]) => share > 0)
         .map(([memberId]) => memberId))
     }
-    // Initialize with all members selected
     return new Set(members.map(m => m.id))
   })
 
@@ -48,19 +46,15 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
     let splitRatio = {}
     
     if (splitType === 'equal') {
-      // Only include selected members in equal split
       const selectedCount = selectedMembers.size
       if (selectedCount === 0) {
         alert('Please select at least one member to split the bill')
         return
       }
-      // Optimized: Only store non-zero split ratios to save space
-      // But for consistency, we'll store all members with 0 for excluded ones
       members.forEach(member => {
         splitRatio[member.id] = selectedMembers.has(member.id) ? 1 : 0
       })
     } else {
-      // Custom split
       const totalShares = Object.values(customSplit).reduce((sum, share) => sum + parseFloat(share || 0), 0)
       if (totalShares === 0) {
         alert('Please set split ratios for at least one member')
@@ -83,7 +77,6 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
 
     onAdd(bill)
     
-    // Reset form only if not editing
     if (!editingBill) {
       setDescription('')
       setAmount('')
@@ -95,7 +88,6 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
     }
   }
 
-  // Update selected members when members list changes
   useEffect(() => {
     const newSelected = new Set(selectedMembers)
     members.forEach(member => {
@@ -103,7 +95,6 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
         newSelected.add(member.id)
       }
     })
-    // Remove members that no longer exist
     selectedMembers.forEach(memberId => {
       if (!members.find(m => m.id === memberId)) {
         newSelected.delete(memberId)
@@ -112,7 +103,6 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
     setSelectedMembers(newSelected)
   }, [members])
 
-  // Calculate preview for equal split
   const calculateEqualSplitPreview = () => {
     if (!amount || parseFloat(amount) <= 0) return null
     const billAmount = parseFloat(amount)
@@ -139,7 +129,6 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
     setSelectedMembers(new Set())
   }
 
-  // Quick action: Exclude the person who paid (common case - they already paid)
   const excludePaidBy = () => {
     const newSelected = new Set(selectedMembers)
     if (paidBy) {
@@ -148,7 +137,6 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
     setSelectedMembers(newSelected)
   }
 
-  // Quick action: Include only the person who paid (for personal expenses)
   const includeOnlyPaidBy = () => {
     if (paidBy) {
       setSelectedMembers(new Set([paidBy]))
@@ -174,7 +162,6 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Bill Details Section */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2 mb-3">
               <Receipt className="w-5 h-5 text-primary-600" />
@@ -257,10 +244,8 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
             </div>
           </div>
 
-          {/* Divider */}
           <div className="border-t border-primary-200"></div>
 
-          {/* Split Options Section */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2 mb-3">
               <Divide className="w-5 h-5 text-primary-600" />
@@ -510,7 +495,6 @@ export default function NewBillModal({ onClose, onAdd, members, editingBill }) {
             </div>
           )}
 
-          {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-primary-200">
             <button
               type="button"

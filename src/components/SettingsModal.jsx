@@ -1,8 +1,10 @@
-import { X, Copy, Check, Plus, Loader2 } from 'lucide-react'
+import { X, Copy, Check, Plus, Loader2, Moon, Sun } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { getStorageId, setStorageId, createNewBin } from '../utils/simpleStorage'
+import { useDarkMode } from '../hooks/useDarkMode'
 
 export default function SettingsModal({ onClose, onStorageIdChange }) {
+  const [isDark, toggleDarkMode] = useDarkMode()
   const [storageId, setStorageIdValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isCreatingBin, setIsCreatingBin] = useState(false)
@@ -10,7 +12,6 @@ export default function SettingsModal({ onClose, onStorageIdChange }) {
   const [message, setMessage] = useState({ type: '', text: '' })
 
   useEffect(() => {
-    // Load current storage ID when modal opens
     setStorageIdValue(getStorageId())
   }, [])
 
@@ -20,7 +21,6 @@ export default function SettingsModal({ onClose, onStorageIdChange }) {
       setIsLoading(true)
       try {
         setStorageId(storageId.trim())
-        // Notify parent to reload data with new storage ID
         if (onStorageIdChange) {
           await onStorageIdChange(storageId.trim())
         }
@@ -56,7 +56,6 @@ export default function SettingsModal({ onClose, onStorageIdChange }) {
       setStorageId(newBinId)
       setMessage({ type: 'success', text: `New bin created! Bin ID: ${newBinId}` })
       
-      // Reload data with new bin ID
       if (onStorageIdChange) {
         await onStorageIdChange(newBinId)
       }
@@ -149,6 +148,24 @@ export default function SettingsModal({ onClose, onStorageIdChange }) {
                 {message.text}
               </div>
             )}
+          </div>
+
+          <div className="mb-4 pt-4 border-t border-primary-200 dark:border-primary-700">
+            <label className="block text-sm font-medium text-primary-900 dark:text-primary-100 mb-2">
+              Appearance
+            </label>
+            <button
+              type="button"
+              onClick={toggleDarkMode}
+              className="flex items-center justify-between w-full p-3 rounded-lg border border-primary-200 dark:border-primary-700 bg-white dark:bg-primary-700 hover:bg-primary-50 dark:hover:bg-primary-600 transition-colors"
+            >
+              <span className="text-sm text-primary-900 dark:text-primary-100">Dark Mode</span>
+              {isDark ? (
+                <Moon className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+              ) : (
+                <Sun className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+              )}
+            </button>
           </div>
           
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
