@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
-import { Users, Plus, Receipt, Calculator, Home, Wifi, WifiOff, Settings } from 'lucide-react'
-import { saveData, loadData, subscribeToGroups } from './utils/simpleStorage'
+import { Users, Plus, Receipt, Calculator, Home, Wifi, WifiOff, Settings, Copy, Check } from 'lucide-react'
+import { saveData, loadData, subscribeToGroups, getStorageId } from './utils/simpleStorage'
 import GroupList from './components/GroupList'
 import GroupView from './components/GroupView'
 import NewGroupModal from './components/NewGroupModal'
 import SettingsModal from './components/SettingsModal'
+import Toast from './components/Toast'
 
 function App() {
   const [groups, setGroups] = useState([])
@@ -16,6 +17,9 @@ function App() {
   const [isLoading, setIsLoading] = useState(true)
   const unsubscribeRef = useRef(null)
   const isUpdatingRef = useRef(false)
+  const [toast, setToast] = useState({ message: '', type: '' })
+  const [binIdCopied, setBinIdCopied] = useState(false)
+  const [currentBinId, setCurrentBinId] = useState(getStorageId())
 
   // Function to initialize data loading and subscription
   const initializeData = () => {
@@ -77,20 +81,30 @@ function App() {
   }
 
   // Save groups when they change (but not from real-time updates)
+  // Use debouncing to avoid excessive API calls
   useEffect(() => {
     if (groups.length >= 0 && !isLoading) {
-      isUpdatingRef.current = true
-      saveData({ groups })
-        .then(() => {
-          isUpdatingRef.current = false
-          setIsConnected(true)
-        })
-        .catch(error => {
-          console.error('Error saving data:', error)
-          // Only set offline if it's a persistent error, not a temporary network issue
-          // The polling will recover connection status
-          isUpdatingRef.current = false
-        })
+      // Debounce auto-save: wait 2 seconds after last change before saving
+      // This prevents saving on every keystroke or rapid changes
+      const saveTimeout = setTimeout(() => {
+        isUpdatingRef.current = true
+        saveData({ groups })
+          .then(() => {
+            isUpdatingRef.current = false
+            setIsConnected(true)
+          })
+          .catch(error => {
+            console.error('Error saving data:', error)
+            // Only set offline if it's a persistent error, not a temporary network issue
+            // The polling will recover connection status
+            isUpdatingRef.current = false
+          })
+      }, 2000) // Wait 2 seconds after last change
+
+      // Cleanup: cancel pending save if groups change again
+      return () => {
+        clearTimeout(saveTimeout)
+      }
     }
   }, [groups, isLoading])
 
@@ -150,15 +164,34 @@ function App() {
     try {
       await saveData({ groups })
       setIsConnected(true)
+      setToast({ message: 'Data saved successfully!', type: 'success' })
       return true
     } catch (error) {
       console.error('Error saving data:', error)
       setIsConnected(false)
+      setToast({ message: 'Failed to save data. Please try again.', type: 'error' })
       return false
     } finally {
       isUpdatingRef.current = false
     }
   }
+
+  const handleCopyBinId = async () => {
+    try {
+      await navigator.clipboard.writeText(currentBinId)
+      setBinIdCopied(true)
+      setToast({ message: 'Bin ID copied to clipboard!', type: 'success' })
+      setTimeout(() => setBinIdCopied(false), 2000)
+    } catch (error) {
+      console.error('Failed to copy:', error)
+      setToast({ message: 'Failed to copy Bin ID', type: 'error' })
+    }
+  }
+
+  // Update bin ID when it changes
+  useEffect(() => {
+    setCurrentBinId(getStorageId())
+  }, [showSettingsModal])
 
   const selectedGroup = groups.find(g => g.id === selectedGroupId)
 
@@ -172,7 +205,7 @@ function App() {
                 <Receipt className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <h1 className="text-xl sm:text-2xl font-bold text-primary-900 truncate">TripSplit</h1>
-              <div className="flex items-center space-x-1 sm:space-x-2 ml-2 sm:ml-4 flex-shrink-0">
+              <div className="flex items-center space-x-2 sm:space-x-3 ml-2 sm:ml-4 flex-shrink-0">
                 {isConnected ? (
                   <div className="flex items-center space-x-1 text-green-600 text-xs sm:text-sm">
                     <Wifi className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -184,6 +217,22 @@ function App() {
                     <span className="hidden sm:inline">Offline</span>
                   </div>
                 )}
+                <div className="hidden sm:flex items-center space-x-1 text-primary-600 text-xs border-l border-primary-200 pl-2">
+                  <span className="truncate max-w-[120px]" title={currentBinId}>
+                    Bin: {currentBinId.substring(0, 12)}...
+                  </span>
+                  <button
+                    onClick={handleCopyBinId}
+                    className="p-1 hover:bg-primary-100 rounded transition-colors"
+                    title="Copy Bin ID"
+                  >
+                    {binIdCopied ? (
+                      <Check className="w-3 h-3 text-green-600" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
             <div className="flex items-center space-x-2 flex-shrink-0">
@@ -235,6 +284,7 @@ function App() {
             onUpdateGroup={(updates) => updateGroup(selectedGroupId, updates)}
             onBack={() => setActiveView('groups')}
             onSave={saveGroupData}
+            onShowToast={(message, type) => setToast({ message, type })}
           />
         ) : (
           <div className="text-center py-12">
@@ -261,6 +311,12 @@ function App() {
           onStorageIdChange={handleStorageIdChange}
         />
       )}
+
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast({ message: '', type: '' })}
+      />
     </div>
   )
 }

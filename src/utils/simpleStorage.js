@@ -1,6 +1,12 @@
 // Simple shared storage using jsonbin.io
 // This uses jsonbin.io API for storing and retrieving JSON data
 // Reference: https://jsonbin.io/api-reference
+//
+// Optimizations to minimize API requests:
+// - Polling interval: 5 seconds (instead of 1 second) - 80% reduction
+// - Debounced auto-save: 2 second delay after last change
+// - Skip duplicate saves: Only save if data actually changed
+// - Removed verification reads: Skip read-after-write to save API calls
 
 const JSONBIN_API_BASE = 'https://api.jsonbin.io/v3/b'
 
@@ -29,12 +35,63 @@ export const setStorageId = (id) => {
   try {
     if (id && id.trim()) {
       localStorage.setItem(STORAGE_ID_KEY, id.trim())
+      // Reset saved hash when bin ID changes to ensure new bin gets saved
+      if (typeof lastSavedGroupsHash !== 'undefined') {
+        lastSavedGroupsHash = null
+      }
     } else {
       localStorage.removeItem(STORAGE_ID_KEY)
+      if (typeof lastSavedGroupsHash !== 'undefined') {
+        lastSavedGroupsHash = null
+      }
     }
   } catch (error) {
     console.error('Error saving storage ID:', error)
   }
+}
+
+// Create a new bin on jsonbin.io
+export const createNewBin = async (initialData = { groups: [] }) => {
+  if (!MASTER_KEY && !ACCESS_KEY) {
+    throw new Error('No API keys configured')
+  }
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'X-Bin-Private': 'false' // Make it public
+  }
+
+  if (MASTER_KEY) {
+    headers['X-Master-Key'] = MASTER_KEY
+  } else if (ACCESS_KEY) {
+    headers['X-Access-Key'] = ACCESS_KEY
+  }
+
+  const body = {
+    ...initialData,
+    lastUpdated: new Date().toISOString()
+  }
+
+  const response = await fetch(JSONBIN_API_BASE, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body)
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Unknown error' }))
+    throw new Error(`Failed to create bin: ${errorData.message || 'Unknown error'}`)
+  }
+
+  const data = await response.json()
+  const newBinId = data.metadata?.id
+
+  if (newBinId) {
+    setStorageId(newBinId)
+    return newBinId
+  }
+
+  throw new Error('Failed to get bin ID from response')
 }
 
 // Fallback to LocalStorage
@@ -152,6 +209,9 @@ export const loadGroups = async () => {
   }
 }
 
+// Track last saved data to avoid unnecessary saves
+let lastSavedGroupsHash = null
+
 // Save all groups
 export const saveGroups = async (groups) => {
   // Always save to LocalStorage as backup
@@ -166,6 +226,14 @@ export const saveGroups = async (groups) => {
     )
     return
   }
+
+  // Check if data actually changed to avoid unnecessary API calls
+  const currentHash = JSON.stringify(groups)
+  if (currentHash === lastSavedGroupsHash) {
+    // Data hasn't changed, skip API call
+    return
+  }
+  lastSavedGroupsHash = currentHash
 
   try {
     const binId = getStorageId()
@@ -239,22 +307,8 @@ export const saveGroups = async (groups) => {
       throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message || 'Unknown error'}`)
     }
 
-    // Verify the save was successful by reading it back
-    const verifyResponse = await fetch(`${JSONBIN_API_BASE}/${binId}/latest`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(MASTER_KEY ? { 'X-Master-Key': MASTER_KEY } : { 'X-Access-Key': ACCESS_KEY })
-      }
-    })
-
-    if (verifyResponse.ok) {
-      const savedData = await verifyResponse.json()
-      const savedGroups = savedData.record?.groups || []
-      if (JSON.stringify(savedGroups) !== JSON.stringify(groups)) {
-        console.warn('Data verification failed - saved data may differ')
-      }
-    }
+    // Skip verification read to save API requests - jsonbin.io PUT/POST responses are reliable
+    // Only verify on explicit save requests if needed (not on auto-save)
   } catch (error) {
     console.error('Error saving to JSONBin.io:', error.message)
     throw error // Re-throw so caller knows save failed
@@ -283,9 +337,10 @@ export const subscribeToGroups = (callback) => {
       // Don't stop polling on error - might be temporary network issue
     }
 
-    // Poll every 1 second for faster updates
+    // Poll every 5 seconds to minimize API requests while still being responsive
+    // This reduces API calls by 80% compared to 1 second polling
     if (isActive) {
-      setTimeout(poll, 1000)
+      setTimeout(poll, 5000)
     }
   }
 
@@ -293,8 +348,8 @@ export const subscribeToGroups = (callback) => {
   loadGroups().then(groups => {
     callback(groups)
     lastDataHash = JSON.stringify(groups)
-    // Start polling immediately
-    setTimeout(poll, 1000)
+    // Start polling after initial load (5 seconds)
+    setTimeout(poll, 5000)
   })
 
   // Return unsubscribe function

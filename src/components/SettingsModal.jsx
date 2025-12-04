@@ -1,10 +1,13 @@
-import { X } from 'lucide-react'
+import { X, Copy, Check, Plus, Loader2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { getStorageId, setStorageId } from '../utils/simpleStorage'
+import { getStorageId, setStorageId, createNewBin } from '../utils/simpleStorage'
 
 export default function SettingsModal({ onClose, onStorageIdChange }) {
   const [storageId, setStorageIdValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isCreatingBin, setIsCreatingBin] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [message, setMessage] = useState({ type: '', text: '' })
 
   useEffect(() => {
     // Load current storage ID when modal opens
@@ -34,6 +37,37 @@ export default function SettingsModal({ onClose, onStorageIdChange }) {
     setStorageIdValue('tripsplit-shared-public')
   }
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(storageId)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (error) {
+      console.error('Failed to copy:', error)
+    }
+  }
+
+  const handleCreateNewBin = async () => {
+    setIsCreatingBin(true)
+    setMessage({ type: '', text: '' })
+    try {
+      const newBinId = await createNewBin({ groups: [] })
+      setStorageIdValue(newBinId)
+      setStorageId(newBinId)
+      setMessage({ type: 'success', text: `New bin created! Bin ID: ${newBinId}` })
+      
+      // Reload data with new bin ID
+      if (onStorageIdChange) {
+        await onStorageIdChange(newBinId)
+      }
+    } catch (error) {
+      console.error('Error creating bin:', error)
+      setMessage({ type: 'error', text: error.message || 'Failed to create bin' })
+    } finally {
+      setIsCreatingBin(false)
+    }
+  }
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-start sm:items-center z-50 p-2 sm:p-4 overflow-y-auto">
       <div className="card max-w-md w-full my-4 sm:my-8 max-h-[calc(100vh-2rem)]">
@@ -56,21 +90,65 @@ export default function SettingsModal({ onClose, onStorageIdChange }) {
             <p className="text-xs text-primary-600 mb-2">
               Users with the same Bin ID will see the same groups. Share this ID with others to collaborate.
             </p>
-            <input
-              type="text"
-              value={storageId}
-              onChange={(e) => setStorageIdValue(e.target.value)}
-              placeholder="tripsplit-shared-public"
-              className="input-field"
-              autoFocus
-            />
-            <button
-              type="button"
-              onClick={handleReset}
-              className="text-xs text-primary-600 hover:text-primary-800 mt-2 underline"
-            >
-              Reset to default
-            </button>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={storageId}
+                onChange={(e) => setStorageIdValue(e.target.value)}
+                placeholder="tripsplit-shared-public"
+                className="input-field flex-1"
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="btn-secondary px-3 flex items-center justify-center"
+                title="Copy Bin ID"
+              >
+                {copied ? (
+                  <Check className="w-4 h-4 text-green-600" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="text-xs text-primary-600 hover:text-primary-800 underline"
+              >
+                Reset to default
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateNewBin}
+                disabled={isCreatingBin}
+                className="text-xs btn-secondary px-3 py-1.5 flex items-center space-x-1"
+                title="Create a new empty bin"
+              >
+                {isCreatingBin ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <span>Creating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-3 h-3" />
+                    <span>Create New Bin</span>
+                  </>
+                )}
+              </button>
+            </div>
+            {message.text && (
+              <div className={`mt-2 p-2 rounded text-xs ${
+                message.type === 'success' 
+                  ? 'bg-green-50 text-green-700 border border-green-200' 
+                  : 'bg-red-50 text-red-700 border border-red-200'
+              }`}>
+                {message.text}
+              </div>
+            )}
           </div>
           
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">

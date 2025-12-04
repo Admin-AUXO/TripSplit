@@ -76,8 +76,13 @@ export default function ExpenseTally({ group, onUpdateGroup, onSave }) {
 
   const handleSave = async () => {
     if (onSave) {
-      await onSave()
-      setHasUnsavedChanges(false)
+      try {
+        await onSave()
+        setHasUnsavedChanges(false)
+      } catch (error) {
+        console.error('Error saving:', error)
+        // Keep hasUnsavedChanges true on error so user can retry
+      }
     }
   }
 

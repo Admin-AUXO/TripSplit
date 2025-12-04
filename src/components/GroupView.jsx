@@ -7,9 +7,10 @@ import ExpenseStats from './ExpenseStats'
 import NewMemberModal from './NewMemberModal'
 import NewBillModal from './NewBillModal'
 
-export default function GroupView({ group, onUpdateGroup, onBack, onSave }) {
+export default function GroupView({ group, onUpdateGroup, onBack, onSave, onShowToast }) {
   const [isSaving, setIsSaving] = useState(false)
   const [saveStatus, setSaveStatus] = useState(null) // 'success', 'error', or null
+  const [lastSaved, setLastSaved] = useState(null)
   const [activeTab, setActiveTab] = useState('bills') // 'members', 'bills', 'tally'
   const [showNewMemberModal, setShowNewMemberModal] = useState(false)
   const [showNewBillModal, setShowNewBillModal] = useState(false)
@@ -84,7 +85,18 @@ export default function GroupView({ group, onUpdateGroup, onBack, onSave }) {
     
     try {
       const success = await onSave()
-      setSaveStatus(success ? 'success' : 'error')
+      if (success) {
+        setSaveStatus('success')
+        setLastSaved(new Date())
+        if (onShowToast) {
+          onShowToast('Data saved successfully!', 'success')
+        }
+      } else {
+        setSaveStatus('error')
+        if (onShowToast) {
+          onShowToast('Failed to save data. Please try again.', 'error')
+        }
+      }
       
       // Clear status message after 2 seconds
       setTimeout(() => {
@@ -93,12 +105,26 @@ export default function GroupView({ group, onUpdateGroup, onBack, onSave }) {
     } catch (error) {
       console.error('Error saving:', error)
       setSaveStatus('error')
+      if (onShowToast) {
+        onShowToast('Error saving data. Please try again.', 'error')
+      }
       setTimeout(() => {
         setSaveStatus(null)
       }, 2000)
     } finally {
       setIsSaving(false)
     }
+  }
+
+  const formatLastSaved = (date) => {
+    if (!date) return null
+    const now = new Date()
+    const diff = Math.floor((now - date) / 1000) // seconds
+    
+    if (diff < 60) return 'Just now'
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
+    return date.toLocaleDateString()
   }
 
   const tabs = [
@@ -111,7 +137,7 @@ export default function GroupView({ group, onUpdateGroup, onBack, onSave }) {
   return (
     <div>
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
           <button
             onClick={onBack}
             className="text-primary-600 hover:text-primary-800 flex items-center space-x-2"
@@ -119,37 +145,44 @@ export default function GroupView({ group, onUpdateGroup, onBack, onSave }) {
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Groups</span>
           </button>
-          {onSave && (
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className={`flex items-center justify-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                saveStatus === 'success'
-                  ? 'bg-green-600 text-white hover:bg-green-700'
-                  : saveStatus === 'error'
-                  ? 'bg-red-600 text-white hover:bg-red-700'
-                  : 'btn-primary'
-              }`}
-              title="Save all changes to shared storage"
-            >
-              {isSaving ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Saving...</span>
-                </>
-              ) : saveStatus === 'success' ? (
-                <>
-                  <CheckCircle className="w-4 h-4" />
-                  <span>Saved!</span>
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  <span>Save Changes</span>
-                </>
-              )}
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {lastSaved && (
+              <div className="text-xs text-primary-600 hidden sm:block">
+                Last saved: {formatLastSaved(lastSaved)}
+              </div>
+            )}
+            {onSave && (
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className={`flex items-center justify-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                  saveStatus === 'success'
+                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    : saveStatus === 'error'
+                    ? 'bg-red-600 text-white hover:bg-red-700'
+                    : 'btn-primary'
+                }`}
+                title="Save all changes to shared storage"
+              >
+                {isSaving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Saving...</span>
+                  </>
+                ) : saveStatus === 'success' ? (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Saved!</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>Save Changes</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
         <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 break-words">{group.name}</h2>
       </div>
